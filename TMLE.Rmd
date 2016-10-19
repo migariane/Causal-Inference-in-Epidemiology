@@ -55,9 +55,10 @@ $P(W = w)\,=\,\sum_{y,a}\,P(W = w, A = a, Y = y)$
 
 #TMLE flow chart 
 ![](Figures/tmle.png)
-Source: [@van2016]
+Source:[@van2011]
 
-#Implementation 
+#Implementation
+
 ##First step
 
 
