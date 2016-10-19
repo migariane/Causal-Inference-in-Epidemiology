@@ -1,2 +1,2 @@
 # MALF
-This Rnotebook document will allows you to understand the implementation of TMLE 
+This R Notebook will help you to understand step by step the implementation of the targeted maximum likelihood estimation (TMLE) in R. 
