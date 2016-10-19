@@ -1,0 +1,58 @@
+---
+title: "TMLE implementation"
+author: "By: Miguel Angel Luque Fernandez, miguel-angel.luque@lshtm.ac.uk"
+date: "May 11th, 2016"
+output:  
+  html_notebook:
+    code_folding: show
+    highlight: haddock
+    #keep_md: yes
+    number_sections: yes
+    theme: journal
+    toc: yes
+    toc_float:
+      collapsed: no
+      smooth_scroll: yes
+      toc_depth: 3
+#csl: Bib_Citation_Files/the-isme-journal.csl
+#bibliography: Bib_Citation_Files/2016-05-09-R-packages.bib
+---
+
+<!--BEGIN:  Set the global options and load packages-->
+
+```{r set-global-options, echo = FALSE}
+knitr::opts_chunk$set(eval = TRUE, 
+                      echo = TRUE, 
+                      cache = FALSE,
+                      include = TRUE,
+                      collapse = FALSE,
+                      dependson = NULL,
+                      engine = "R", # Chunks will always have R code, unless noted
+                      error = TRUE,
+                      fig.path="Figures/",  # Set the figure options
+                      fig.align = "center", 
+                      fig.width = 7,
+                      fig.height = 7)
+```
+
+
+
+# Thank you  
+
+Thank you for participating in this tutorial.  
+
+If you have updates you would like to make to the lesson, please send <a href="https://github.com/migariane/MALF" target="_blank">me</a> a pull request.  
+Alternatively, if you have any questions, please e-mail me.  
+
+**Miguel Angel Luque Fernandez**  
+**E-mail:** *miguel-angel.luque at lshtm.ac.uk*  
+**Twitter** `@WATZILEI`  
+
+Good luck with your pursuit of dynamic documents!  
+
+# Session Info 
+```{r session-info, results ='markup'}
+devtools::session_info()
+```
+
+# References 
