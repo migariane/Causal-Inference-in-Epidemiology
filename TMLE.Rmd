@@ -56,10 +56,63 @@ $P(W = w)\,=\,\sum_{y,a}\,P(W = w, A = a, Y = y)$
 #TMLE flow chart 
 **Source** :	Mark van der Laan and Sherri Rose. Targeted learning: causal inference for observational and experimental dataSpringer Series in Statistics, 2011
 ![](Figures/tmle.png)
-
 #Implementation
 
-##First step
+##Data generation
+In R we create a function to generate the data with the input number of draws and the output the observed data (ObsData) plus the counterfactuals (Y1, Y0).   
+The observed data:  
+1. Y: Mortality  
+2. A: Binary treatment for emergency presentation at cancer diagnosis    
+3. W1: Gender (1 male; 0 female)  
+4. W2: Age at diagnosis (0 <65; 1 >=65)  
+4. W3: Cancer TNM classification (scale from 1 to 4)  
+5. W4 Comorbidities (scale from 1 to 5)  
+
+```{r}
+#install.packages("broom")
+options(digits=3)
+generateData <- function(n){
+  w1 <- rbinom(n, size=1, prob=0.5)
+  w2 <- rbinom(n, size=1, prob=0.65)
+  w3 <- runif(n, min=0, max=4)
+  w4 <- runif(n, min=0, max=5)
+  A  <- rbinom(n, size=1, prob= plogis(-0.4 + 0.2*w2 + 0.15*w3 + 0.2*w4))
+  Y  <- rbinom(n, size=1, prob= plogis(-1 + A -0.1*w1 + 0.3*w2 + 0.25*w3 + 0.2*w4))
+  
+  # counterfactual
+  Y.1 <- rbinom(n, size=1, prob= plogis(-1 + 1 -0.1*w1 + 0.3*w2 + 0.25*w3 + 0.2*w4))
+  Y.0 <- rbinom(n, size=1, prob= plogis(-1 + 0 -0.1*w1 + 0.3*w2 + 0.25*w3 + 0.2*w4))
+  
+  # return data.frame
+  data.frame(w1, w2, w3, w4, A, Y, Y.1, Y.0)
+}
+set.seed(7858)
+ObsData <- generateData(n=1000)
+True_Psi <- mean(ObsData$Y.1-ObsData$Y.0);True_Psi
+Bias_Psi <- summary(lm(data=ObsData, Y~A));Bias_Psi$coef
+A <- factor(ObsData$A, levels=0:1)
+Y.1.A.1 <-mean(ObsData$Y)[A=1]
+Y.1.A.1
+Y.1.A.0 <-mean(ObsData$Y)[A=0]
+Y.1.A.0
+Bias_Psi2 <- (Y.1.A.1)-(Y.1.A.0); Bias_Psi2
+```
+
+##Data visualization
+```{r}
+# DT table = interactive
+# install.packages("DT") # install DT first
+library(DT)
+datatable(head(ObsData, n = nrow(ObsData)), options = list(pageLength = 5)) 
+```
+
+##First step: estimation of  E$_{0}$(Y|A,W)  
+Estimation of the initial probability of the outcome (Y) given the treatment (A) and the set of covariates (W), denoted as the $Q_{0}$(A,**W**). To estimate $Q_{0}$(A,**W**) we can use a standard logistic regression model:  
+$logit[P(Y=1|A,**W**)]=\beta_{0}\,+\,\beta_{1}A\+|\beta_{2}^{T}W$.  
+
+Therefore, we can estimate the initial probability (as follows:  .      (1)
+The predicted probability can be estimated using the Super Learner library implemented in the R package “Super-Learner”6 to include any terms that are functions of A or W (e.g., polynomial terms of A and W, as well as the interaction terms of A and W, can be considered). Consequently, for each subject, the predicted probabilities for both potential outcomes  and  can be estimated by setting A = 0 and A = 1 for everyone respectively:
+ and,.
 
 
 
