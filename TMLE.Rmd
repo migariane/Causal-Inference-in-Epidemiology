@@ -53,20 +53,32 @@ $P(W = w)\,=\,\sum_{y,a}\,P(W = w, A = a, Y = y)$
 2. Using classical regression methods to control confounding requires making the assumption that the effect measure is constant across levels of confounders included in the model.
 3. Alternatively, **standardization** allows us to obtain an unconfounded summary effect measure without requiring this assumption.The **G-formula** is a *generalization of standardization*[@robins1986]
 
+#Causal assumptions 
+Under the counterfactual framework, we have to consider the following assumptions to consider the estimate of the ATE as causal: 
+
+##CMI or Randomization 
+($Y_{0},Y_{1}\perp$A|W) of the binary treatment effect (A) on the outcome (Y) given the set of observed covariates (W), where W = (W1,  W2, W3, … , Wk). 
+
+##Positivity 
+a ϵ A: P(A=a | W) > 0  
+P(A=1|W=w) > 0 and P(A=0| W = w) > 0 for each possible w.  
+
+##Consistency or SUTVA: 
+The observed outcome value, under the observed treatment, is equal to the counterfactual outcome corresponding to the observed treatment for identical independent distributed (i.i.d.) variables.    
+
 #TMLE flow chart 
 **Source** :	Mark van der Laan and Sherri Rose. Targeted learning: causal inference for observational and experimental dataSpringer Series in Statistics, 2011
 ![](Figures/tmle.png)
-#Implementation
 
-##Data generation
+#Data generation
 In R we create a function to generate the data with the input number of draws and the output the observed data (ObsData) plus the counterfactuals (Y1, Y0).   
 The observed data:  
-1. Y: Mortality  
-2. A: Binary treatment for emergency presentation at cancer diagnosis    
+1. Y: mortality binary indicator (1 death, 0 alive) 
+2. A: binary treatment for emergency presentation at cancer diagnosis  (1 EP, 0 NonEP)    
 3. W1: Gender (1 male; 0 female)  
 4. W2: Age at diagnosis (0 <65; 1 >=65)  
 4. W3: Cancer TNM classification (scale from 1 to 4)  
-5. W4 Comorbidities (scale from 1 to 5)  
+5. W4: Comorbidities (scale from 1 to 5)  
 
 ```{r}
 #install.packages("broom")
@@ -90,15 +102,9 @@ set.seed(7858)
 ObsData <- generateData(n=1000)
 True_Psi <- mean(ObsData$Y.1-ObsData$Y.0);True_Psi
 Bias_Psi <- summary(lm(data=ObsData, Y~A));Bias_Psi$coef
-A <- factor(ObsData$A, levels=0:1)
-Y.1.A.1 <-mean(ObsData$Y)[A=1]
-Y.1.A.1
-Y.1.A.0 <-mean(ObsData$Y)[A=0]
-Y.1.A.0
-Bias_Psi2 <- (Y.1.A.1)-(Y.1.A.0); Bias_Psi2
 ```
 
-##Data visualization
+#Data visualization
 ```{r}
 # DT table = interactive
 # install.packages("DT") # install DT first
@@ -106,9 +112,12 @@ library(DT)
 datatable(head(ObsData, n = nrow(ObsData)), options = list(pageLength = 5)) 
 ```
 
-##First step: estimation of  E$_{0}$(Y|A,W)  
-Estimation of the initial probability of the outcome (Y) given the treatment (A) and the set of covariates (W), denoted as the $Q_{0}$(A,**W**). To estimate $Q_{0}$(A,**W**) we can use a standard logistic regression model:  
-$logit[P(Y=1|A,**W**)]=\beta_{0}\,+\,\beta_{1}A\+|\beta_{2}^{T}W$.  
+#TMLE implementation
+
+##1st step: E$_{0}$(Y|A,W)  
+Estimation of the initial probability of the outcome (Y) given the treatment (A) and the set of covariates (W), denoted as the $Q_{0}$(A,**W**). To estimate $Q_{0}$(A,**W**) we can use a standard logistic regression model: 
+
+$logit[P(Y=1|A,W)]\,=\,\beta_{0}\,+\,\beta_{1}A\,+\,\beta_{2}^{T}$**W**.    
 
 Therefore, we can estimate the initial probability (as follows:  .      (1)
 The predicted probability can be estimated using the Super Learner library implemented in the R package “Super-Learner”6 to include any terms that are functions of A or W (e.g., polynomial terms of A and W, as well as the interaction terms of A and W, can be considered). Consequently, for each subject, the predicted probabilities for both potential outcomes  and  can be estimated by setting A = 0 and A = 1 for everyone respectively:
