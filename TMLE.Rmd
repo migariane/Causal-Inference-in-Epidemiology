@@ -38,14 +38,14 @@ knitr::opts_chunk$set(eval = TRUE,
 
 #Introduction
 1. **TMLE** is a general algorithm for the construction of double robust, semiparametric, efficient substitution estimators. TMLE allows for data-adaptive estimation while obtaining valid statistical inference. 
-2. Although **TMLE** implemtation uses the G-computation estimand (G-formula). Briefly, the TMLE algorithm uses information in the estimated exposure mechanism P(A|W) to update the initial estimator of the conditional mean E_0(Y|A,W). 
-3. The targeted estimates are then substituted into the parameter mapping. The updating step achieves a targeted bias reduction for the parameter of interest $\psi$(P0) (the true target parameter) and serves to solve the efficient score equation. As a result, TMLE is a **double robust estimator**.
-4. **TMLE** it will be consistent for $\psi$(P0) is either the conditional expectation E_0(Y|A,W) or the exposure mechanism P_0(A|W) are estimated consistently. When both functions are consistently estimated, the **TMLE** will be efficient in that it achieves the lowest asymptotic variance among a large class of estimators. These asymptotic properties typically translate into lower bias and variance in finite samples.[@buh2016]
+2. Although **TMLE** implemtation uses the G-computation estimand (G-formula). Briefly, the TMLE algorithm uses information in the estimated exposure mechanism P(A|W) to update the initial estimator of the conditional mean E$_{0}$(Y|A,W). 
+3. The targeted estimates are then substituted into the parameter mapping. The updating step achieves a targeted bias reduction for the parameter of interest $\psi(P_{0})$ (the true target parameter) and serves to solve the efficient score equation. As a result, TMLE is a **double robust estimator**.
+4. **TMLE** it will be consistent for $\psi(P_{0})$ is either the conditional expectation E_0(Y|A,W) or the exposure mechanism P$_{0}$(A|W) are estimated consistently. When both functions are consistently estimated, the **TMLE** will be efficient in that it achieves the lowest asymptotic variance among a large class of estimators. These asymptotic properties typically translate into lower bias and variance in finite samples.[@buh2016]
 5. The advantages of TMLE have been repeatedly demonstrated in both simulation studies and applied analyses.[@van2011]
 6. The procedure is available with standard software such as the **tmle** package in R [@gruber2011].
 
 #The G-Formula
-1. $\Psi(P0)\,=\,\sum_{w}\,\left[\sum_{y}\,P(Y=y\mid A=1,W=w)-\,\sum_{y}\,P(Y = y\mid A=0,W=w)\right]P(W=w)$  
+1. $\psi(P_{0})\,=\,\sum_{w}\,\left[\sum_{y}\,P(Y=y\mid A=1,W=w)-\,\sum_{y}\,P(Y = y\mid A=0,W=w)\right]P(W=w)$  
 where  
 $P(Y = y \mid A = a, W = w)\,=\,\frac{P(W = w, A = a, Y = y)}{\sum_{y}\,P(W = w, A = a, Y = y)}$  
 is the conditional probability distribution of Y = y, given A = a, W = w and,  
@@ -54,8 +54,8 @@ $P(W = w)\,=\,\sum_{y,a}\,P(W = w, A = a, Y = y)$
 3. Alternatively, **standardization** allows us to obtain an unconfounded summary effect measure without requiring this assumption.The **G-formula** is a *generalization of standardization*[@robins1986]
 
 #TMLE flow chart 
+**Source** :	Mark van der Laan and Sherri Rose. Targeted learning: causal inference for observational and experimental dataSpringer Series in Statistics, 2011
 ![](Figures/tmle.png)
-Source:[@van2011]
 
 #Implementation
 
