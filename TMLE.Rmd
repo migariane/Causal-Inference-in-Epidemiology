@@ -86,8 +86,8 @@ options(digits=3)
 generateData <- function(n){
   w1 <- rbinom(n, size=1, prob=0.5)
   w2 <- rbinom(n, size=1, prob=0.65)
-  w3 <- runif(n, min=0, max=4)
-  w4 <- runif(n, min=0, max=5)
+  w3 <- round(runif(n, min=0, max=4), digits=3)
+  w4 <- round(runif(n, min=0, max=5), digits=3)
   A  <- rbinom(n, size=1, prob= plogis(-0.4 + 0.2*w2 + 0.15*w3 + 0.2*w4))
   Y  <- rbinom(n, size=1, prob= plogis(-1 + A -0.1*w1 + 0.3*w2 + 0.25*w3 + 0.2*w4))
   
@@ -100,8 +100,11 @@ generateData <- function(n){
 }
 set.seed(7858)
 ObsData <- generateData(n=1000)
-True_Psi <- mean(ObsData$Y.1-ObsData$Y.0);True_Psi
-Bias_Psi <- summary(lm(data=ObsData, Y~A));Bias_Psi$coef
+True_Psi <- mean(ObsData$Y.1-ObsData$Y.0);
+cat(" True_Psi:", True_Psi)
+Bias_Psi <- lm(data=ObsData, Y~ A)
+cat("\n")
+cat("\n Naive_Biased_Psi:",summary(Bias_Psi)$coef[2, 1])
 ```
 
 #Data visualization
@@ -109,7 +112,7 @@ Bias_Psi <- summary(lm(data=ObsData, Y~A));Bias_Psi$coef
 # DT table = interactive
 # install.packages("DT") # install DT first
 library(DT)
-datatable(head(ObsData, n = nrow(ObsData)), options = list(pageLength = 5)) 
+datatable(head(ObsData, n = nrow(ObsData)), options = list(pageLength = 5, digits = 2))
 ```
 
 #TMLE implementation
