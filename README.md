@@ -18,7 +18,7 @@ However, Mark van der Laan and collaborators have developed a double-robust esti
 
 Evidence shows that **TMLE** provides the less unbiased estimate of the ATE compared with other double robust estimators.  
 
-The R notebook (**TMLE.nb.html**) will gide you step by step through the implentation of the Targeted Maximum Likelihood Estimation (TMLE).   
+The R notebook (**TMLE.nb.html**) will gide you step by step through the implentation of the Targeted Maximum Likelihood Estimation (TMLE). Please, download and open it in you favorite browser.   
 Hope you will enjoy it.    
 Best regards,    
 Miguel Angel Luque Fernandez  
