@@ -40,7 +40,7 @@ knitr::opts_chunk$set(eval = TRUE,
 1. **TMLE** is a general algorithm for the construction of double robust, semiparametric, efficient substitution estimators. TMLE allows for data-adaptive estimation while obtaining valid statistical inference. 
 2. Although **TMLE** implemtation uses the G-computation estimand (G-formula). Briefly, the TMLE algorithm uses information in the estimated exposure mechanism P(A|W) to update the initial estimator of the conditional mean E$_{0}$(Y|A,W). 
 3. The targeted estimates are then substituted into the parameter mapping. The updating step achieves a targeted bias reduction for the parameter of interest $\psi(P_{0})$ (the true target parameter) and serves to solve the efficient score equation. As a result, TMLE is a **double robust estimator**.
-4. **TMLE** it will be consistent for $\psi(P_{0})$ is either the conditional expectation E_0(Y|A,W) or the exposure mechanism P$_{0}$(A|W) are estimated consistently. When both functions are consistently estimated, the **TMLE** will be efficient in that it achieves the lowest asymptotic variance among a large class of estimators. These asymptotic properties typically translate into lower bias and variance in finite samples.[@buh2016]
+4. **TMLE** it will be consistent for $\psi(P_{0})$ is either the conditional expectation E$_{0}$(Y|A,W) or the exposure mechanism P$_{0}$(A|W) are estimated consistently. When both functions are consistently estimated, the **TMLE** will be efficient in that it achieves the lowest asymptotic variance among a large class of estimators. These asymptotic properties typically translate into lower bias and variance in finite samples.[@buh2016]
 5. The advantages of TMLE have been repeatedly demonstrated in both simulation studies and applied analyses.[@van2011]
 6. The procedure is available with standard software such as the **tmle** package in R [@gruber2011].
 
@@ -62,10 +62,10 @@ $P(W = w)\,=\,\sum_{y,a}\,P(W = w, A = a, Y = y)$
 ##First step
 
 
+
 # Thank you  
 Thank you for participating in this tutorial.  
-
-If you have updates you would like to make to the lesson, please send <a href="https://github.com/migariane/MALF" target="_blank">me</a> a pull request.  
+If you have updates or changes that you would like to make, please send <a href="https://github.com/migariane/MALF" target="_blank">me</a> a pull request.
 Alternatively, if you have any questions, please e-mail me.  
 **Miguel Angel Luque Fernandez**  
 **E-mail:** *miguel-angel.luque at lshtm.ac.uk*  
