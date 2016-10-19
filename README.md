@@ -1,5 +1,5 @@
 # MALF
-During the last 20 years, the **modern epidemiology** has been able to identify some important drawbacks of the classic epidemiologic methods. **Causal Inference and the Neyma-Rubin Potential Outcomes framework** have provided the theory and statistical methods needed to identify recurrent problems in observational epidemologic research, such as:  
+During the last 30 years, the **modern epidemiology** has been able to identify some important drawbacks of the classic epidemiologic methods. **Causal Inference and the Neyma-Rubin Potential Outcomes framework** have provided the theory and statistical methods needed to identify recurrent problems in observational epidemologic research, such as:  
 
 1. the principle of non collapsibility of the odds and hazard ratios, 
 2. the impact of paradoxical effects due to conditioning on colliders, 
