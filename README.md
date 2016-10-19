@@ -5,7 +5,7 @@ To control for confounding, the classical epidemilogic methods require making th
 
 The most commonly used estimator for a binary treatment effect is the risk difference or (ATE). The ATE estimation relies on parametric modelling assumptions. Therefore, the **correct model specification** is crucial to obtain unbiased estimates of the true ATE.  
 
-However, Mark van der Laan and collaborators have developed a double-robust (DR) estimation procedure to reduce bias against misspecification. The **targeted maximum likelihood estimation (TMLE)** is a semiparametric, efficient substitution estimator. **TMLE** allows for data-adaptive estimation while obtaining valid statistical inferencebased on the targeted minimum loss-based estimation and **machine learning algorithms** to minimize the risk of model misspecification.  
+However, Mark van der Laan and collaborators have developed a double-robust estimation procedure to reduce bias against misspecification. The **targeted maximum likelihood estimation (TMLE)** is a semiparametric, efficient substitution estimator. **TMLE** allows for data-adaptive estimation while obtaining valid statistical inferencebased on the **targeted minimum loss-based estimation** and **machine learning algorithms** to minimize the risk of model misspecification.  
 
 Evidence shows that **TMLE** provides with the less unbiased estimate of the ATE compared with other double robust estimators.  
 
