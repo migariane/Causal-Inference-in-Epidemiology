@@ -1,6 +1,6 @@
 ---
 title: "TMLE step by step"
-author: 'By: Miguel Angel Luque Fernandez, miguel-angel.luque@lshtm.ac.uk'
+author: "By: Miguel Angel Luque Fernandez miguel-angel.luque@lshtm.ac.uk"
 date: "October 15th, 2016"
 output:  
   html_notebook:
@@ -37,24 +37,76 @@ knitr::opts_chunk$set(eval = TRUE,
 ```
 
 #Introduction
-1. **TMLE** is a general algorithm for the construction of double robust, semiparametric, efficient substitution estimators. TMLE allows for data-adaptive estimation while obtaining valid statistical inference. 
-2. Although **TMLE** implemtation uses the G-computation estimand (G-formula). Briefly, the TMLE algorithm uses information in the estimated exposure mechanism P(A|W) to update the initial estimator of the conditional mean E$_{0}$(Y|A,W). 
-3. The targeted estimates are then substituted into the parameter mapping. The updating step achieves a targeted bias reduction for the parameter of interest $\psi(P_{0})$ (the true target parameter) and serves to solve the efficient score equation. As a result, TMLE is a **double robust estimator**.
-4. **TMLE** it will be consistent for $\psi(P_{0})$ is either the conditional expectation E$_{0}$(Y|A,W) or the exposure mechanism P$_{0}$(A|W) are estimated consistently. When both functions are consistently estimated, the **TMLE** will be efficient in that it achieves the lowest asymptotic variance among a large class of estimators. These asymptotic properties typically translate into lower bias and variance in finite samples.[@buh2016]
-5. The advantages of TMLE have been repeatedly demonstrated in both simulation studies and applied analyses.[@van2011]
-6. The procedure is available with standard software such as the **tmle** package in R [@gruber2011].
+
+During the last 30 years, the modern epidemiology has been able to identify some important drawbacks of the classic epidemiologic methods. Causal Inference [@robins2000] and the Neyma-Rubin Potential Outcomes framework [@rubin2011] have provided the theory and statistical methods needed to identify recurrent problems in observational epidemologic research, such as:
+
+1. non collapsibility of the odds and hazard ratios,
+2. impact of paradoxical effects due to conditioning on colliders,
+3. left truncation,
+4. prevalent cases,
+5. selection bias related with the vague understanding of the effect of time on exposure and outcome and,
+6. effect of time dependent confounding and mediators.
+7. Etc.
+
+To control for confounding, the classical epidemilogic methods require making the assumption that the effect measure is constant across levels of confounders included in the model.  
+
+Alternatively, James Robins in 1986 demonstrated that using standardization, implemented through the use of the **G-formula**, allowed to obtain unconfounded marginal estimation of the causal average treatment effect (ATE) under causal nontestable assumptions [@robins1986]. The most commonly used estimator for a binary treatment effect is the risk difference or **ATE** = $\psi(P_{0})$.      
 
 #The G-Formula
-1. $\psi(P_{0})\,=\,\sum_{w}\,\left[\sum_{y}\,P(Y=y\mid A=1,W=w)-\,\sum_{y}\,P(Y = y\mid A=0,W=w)\right]P(W=w)$  
-where  
-$P(Y = y \mid A = a, W = w)\,=\,\frac{P(W = w, A = a, Y = y)}{\sum_{y}\,P(W = w, A = a, Y = y)}$  
-is the conditional probability distribution of Y = y, given A = a, W = w and,  
-$P(W = w)\,=\,\sum_{y,a}\,P(W = w, A = a, Y = y)$  
-2. Using classical regression methods to control confounding requires making the assumption that the effect measure is constant across levels of confounders included in the model.
-3. Alternatively, **standardization** allows us to obtain an unconfounded summary effect measure without requiring this assumption.The **G-formula** is a *generalization of standardization*[@robins1986]
+
+$$\psi(P_{0})\,=\,\sum_{w}\,\left[\sum_{y}\,P(Y=y\mid A=1,W=w)-\,\sum_{y}\,P(Y = y\mid A=0,W=w)\right]P(W=w)$$  
+
+where,   
+
+$$P(Y = y \mid A = a, W = w)\,=\,\frac{P(W = w, A = a, Y = y)}{\sum_{y}\,P(W = w, A = a, Y = y)}$$     
+is the conditional probability distribution of Y = y, given A = a, W = w and, 
+
+$$P(W = w)\,=\,\sum_{y,a}\,P(W = w, A = a, Y = y)$$ 
+
+* Classical epidemilogic methods require making the assumption that the effect measure is constant across levels of confounders included in the model. However, **Standardization** allows us to obtain an unconfounded summary effect measure without requiring this assumption. The **G-formula** is a *generalization of standardization* [@robins1986].    
+
+* The ATE can be estimated **non-parametrically** using the G-formula. However, the course of dimensionality in observational studies limits its estimation.   
+
+* Hence, the estimation of the ATE using the G-formula relies mostly on **parametric modelling** assumptions and maximum likelihood estimation. The **correct model specification** in parametric modelling is crucial to obtain unbiased estimates of the true ATE [@rubin2011].  
+
+However, Mark van der Laan and collaborators have developed a double-robust estimation procedure **to reduce bias against misspecification**. The targeted maximum likelihood estimation (TMLE) is a semiparametric, efficient substitution estimator [@van2011].    
+
+**TMLE** allows for data-adaptive estimation while obtaining valid statistical inferencebased on the targeted minimum loss-based estimation and machine learning algorithms to minimize the risk of model misspecification [@van2011].      
+
+1. **TMLE** is a general algorithm for the construction of double-robust, semiparametric, efficient substitution estimators. **TMLE** allows for data-adaptive estimation while obtaining valid statistical inference. 
+
+2. **TMLE** implemtation uses the G-computation estimand (G-formula). Briefly, the **TMLE** algorithm uses information in the estimated exposure mechanism P(A|W) to update the initial estimator of the conditional expectaction of the outcome given the treatment and the set of covariates W, E$_{0}$(Y|A,W). 
+
+3. The targeted estimates are then substituted into the parameter mapping $\Psi$. The updating step achieves a targeted bias reduction for the parameter of interest $\psi(P_{0})$ (the true target parameter) and serves to solve the efficient score equation. As a result, **TMLE** is a double robust estimator. 
+
+4. **TMLE** it will be consistent for $\psi(P_{0})$ if either the conditional expectation E$_{0}$(Y|A,W) or the exposure mechanism P$_{0}$(A|W) are estimated consistently. When both functions are consistently estimated, the **TMLE** will be efficient in that it achieves the lowest asymptotic variance among a large class of estimators. These asymptotic properties typically translate into lower bias and variance in finite samples [@buh2016]. 
+
+The general formula to estimate the ATE using the TMLE method:  
+
+$$\psi TMLE,n = \Psi(Q_{n}^{*})= {\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right)}.  (1)$$
+The efficient influcence curve (IC) based on xxxx (ref) is applied for statistical inference using TMLE:
+
+$$IC_{n}(O_{i})\ \ =\ \left(\frac{I\left(A_{i}=1\right)}{g_n\left(1\left|W_{i}\right)\right)}\ -\ \frac{I\left(A_{i}=0\right)}{g_n\left(0\left|W_{i}\right)\right)}\ \right)\left[Y_{i}-\bar{Q}_{n}^{1}\left(A_{i},W_{i}\right)\right]+\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right) - \psi TMLE,n. (2)$$
+where the variance of the ATE:  
+
+$$\sigma({\psi_{0}})=\sqrt{\frac{Var(IC_{n})}{n}}.  (3)$$
+
+5. The procedure is available with standard software such as the **tmle** package in R  [@gruber2011]. 
+
+6. The advantages of **TMLE** have been repeatedly demonstrated in both simulation studies and applied analyses [@van2011]. Evidence shows that **TMLE** provides the less unbiased ATE estimate compared with other double-robust estimators [@neu2005], [@van2011] such as the combination of regression adjustment with inverse probability of treatment weighting (IPTW-RA) and the augmented inverse probability of treatment weighting (AIPTW). The AIPTW estimation is a two step procedure with two equations (propensity score equation and mean outcome equation).  
+
+7. To estimate the ATE using the AIPTW estimator one can set the estimation equation (EE) (4) equal to cero and use bootstrap to derive 95% confidence intervals (CI). However, solving the EE using the generalized method of moments (GMM), stacking both equations (propensity score and outcome), reduces the estimation and inference steps to only one. However, given that the propensity score in equation (4) can easily fall outside the range [0, 1] if for some observations $$g_{n}(1|W_{i})$$ is close to 1 or 0. This represents the price of not being a substitution estimator as **TMLE**.        
+
+$$\psi_{0}^{AIPTW-ATE}\ \ =\ \frac{1}{n}\sum_{i=1}^{n}\left(\frac{I\left(A_{i}=1\right)}{g_n\left(1\left|W_{i}\right)\right)}\ -\ \frac{I\left(A_{i}=0\right)}{g_n\left(0\left|W_{i}\right)\right)}\ \right)\left[Y_{i}-\bar{Q}_{n}^{0}\left(A_{i},W_{i}\right)\right]+\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{0}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{0}\left(0,\ W_{i}\right) (4)$$
+
+#Structural causal framework
+
+##Direct Acyclic Graph
+![](Figures/DAG.png)
+Figure 1. Direct Acyclic Graph
 
 #Causal assumptions 
-Under the counterfactual framework, we have to consider the following assumptions to consider the estimate of the ATE as causal: 
+Under the counterfactual framework the following assumptions have to be considered to estimate the $\psi(P_{0})$ (ATE) with a mondel for $P_{0}$ augmented with additional nontestatble cuasal assumptions [@rubin2011], [@van2011]:     
 
 ##CMI or Randomization 
 ($Y_{0},Y_{1}\perp$A|W) of the binary treatment effect (A) on the outcome (Y) given the set of observed covariates (W), where W = (W1,  W2, W3, … , Wk). 
@@ -67,12 +119,18 @@ P(A=1|W=w) > 0 and P(A=0| W = w) > 0 for each possible w.
 The observed outcome value, under the observed treatment, is equal to the counterfactual outcome corresponding to the observed treatment for identical independent distributed (i.i.d.) variables.    
 
 #TMLE flow chart 
-**Source** :	Mark van der Laan and Sherri Rose. Targeted learning: causal inference for observational and experimental dataSpringer Series in Statistics, 2011
+**Source**: Mark van der Laan and Sherri Rose. Targeted learning: causal inference for observational and experimental dataSpringer Series in Statistics, 2011.  
 ![](Figures/tmle.png)
+Figure 2. TMLE flow chart (Road map)
 
 #Data generation
-In R we create a function to generate the data with the input number of draws and the output the observed data (ObsData) plus the counterfactuals (Y1, Y0).   
-The observed data:  
+
+##Simulation 
+
+In R we create a function to generate the data. The function will have as input number of draws and as output the generated observed data (ObsData) including the counterfactuals (Y1, Y0).  
+
+The simulated data replicationg the DAG in Figure 1:  
+
 1. Y: mortality binary indicator (1 death, 0 alive) 
 2. A: binary treatment for emergency presentation at cancer diagnosis  (1 EP, 0 NonEP)    
 3. W1: Gender (1 male; 0 female)  
@@ -98,16 +156,18 @@ generateData <- function(n){
   # return data.frame
   data.frame(w1, w2, w3, w4, A, Y, Y.1, Y.0)
 }
-set.seed(7858)
-ObsData <- generateData(n=1000)
+set.seed(13579)
+ObsData <- generateData(n=10000)
 True_Psi <- mean(ObsData$Y.1-ObsData$Y.0);
 cat(" True_Psi:", True_Psi)
 Bias_Psi <- lm(data=ObsData, Y~ A)
 cat("\n")
 cat("\n Naive_Biased_Psi:",summary(Bias_Psi)$coef[2, 1])
+Naive_Bias <- ((summary(Bias_Psi)$coef[2, 1])-True_Psi); cat("\n Naives bias:", Naive_Bias)
+Naive_Relative_Bias <- (((summary(Bias_Psi)$coef[2, 1])-True_Psi)/True_Psi)*100; cat("\n Relative Naives bias:", Naive_Relative_Bias,"%")
 ```
+##Data visualization
 
-#Data visualization
 ```{r}
 # DT table = interactive
 # install.packages("DT") # install DT first
@@ -117,18 +177,77 @@ datatable(head(ObsData, n = nrow(ObsData)), options = list(pageLength = 5, digit
 
 #TMLE implementation
 
-##1st step: E$_{0}$(Y|A,W)  
+##E$_{0}$(Y|A,W) estimation
 Estimation of the initial probability of the outcome (Y) given the treatment (A) and the set of covariates (W), denoted as the $Q_{0}$(A,**W**). To estimate $Q_{0}$(A,**W**) we can use a standard logistic regression model: 
 
-$logit[P(Y=1|A,W)]\,=\,\beta_{0}\,+\,\beta_{1}A\,+\,\beta_{2}^{T}$**W**.    
+$$\text{logit}[P(Y=1|A,W)]\,=\,\beta_{0}\,+\,\beta_{1}A\,+\,\beta_{2}^{T}W$$. 
 
-Therefore, we can estimate the initial probability (as follows:  .      (1)
-The predicted probability can be estimated using the Super Learner library implemented in the R package “Super-Learner”6 to include any terms that are functions of A or W (e.g., polynomial terms of A and W, as well as the interaction terms of A and W, can be considered). Consequently, for each subject, the predicted probabilities for both potential outcomes  and  can be estimated by setting A = 0 and A = 1 for everyone respectively:
- and,.
+Therefore, we can estimate the initial probability as follows: 
+
+$$\bar{Q}^{0}(A,W)\,=\,\text{expit}(\hat{\beta_{0}}\,+\,\hat{\beta_{1}}A\,+\,\hat{\beta_{2}}^{T}W)$$ 
+
+The predicted probability can be estimated using the Super Learner library implemented in the R package “Super-Learner” (Ref) to include any terms that are functions of A or W (e.g., polynomial terms of A and W, as well as the interaction terms of A and W, can be considered). Consequently, for each subject, the predicted probabilities for both potential outcomes $\bar{Q}^{0}(0,W)$ and  $\bar{Q}^{0}(1,W)$ can be estimated by setting A = 0 and A = 1 for everyone respectively:
+$$\bar{Q}^{0}(0,W)\,=\,\text{expit}(\hat{\beta_{0}}\,+\,\hat{\beta_{2}}^{T}W)$$
+and,  
+$$\bar{Q}^{0}(1,W)\,=\,\text{expit}(\hat{\beta_{0}}\,+\,\hat{\beta_{1}}A\,+\,\hat{\beta_{2}}^{T}W)$$
+
+```{r}
+#Step One
+ObsData <-subset(ObsData, select=c(w1,w2,w3,w4,A,Y))
+Y  <- ObsData$Y
+A  <- ObsData$A
+w1 <- ObsData$w1
+w2 <- ObsData$w2
+w3 <- ObsData$w3
+w4 <- ObsData$w4
+m <-glm(Y ~ A + w1 + w2 + w3 + w4, family=binomial, data=ObsData)
+Q<- cbind(QAW = predict(m),
+    Q1W = predict(m, newdata=data.frame(A = 1, w1, w2, w3, w4)),
+    Q0W = predict(m, newdata=data.frame(A = 0, w1, w2, w3, w4)));mean(Q1W-Q0W)
+````
+
+```{r}
+#Step 2: model for the treatment
+          
+g <- glm(A ~ w2 + w3 + w4, family = binomial)
+g1w = predict(g, type ="response")
+```
+
+```{r}
+#Step 3: iterative fluctuation of the initial estimate of the outcome E0(Y|A, W)
+
+h <- cbind(A/g1w -(1-A)/(1-g1w), 1/g1w, -1/(1-g1w))
+epsilon <- coef(glm(Y ~ -1 + h[,1] + offset(Q[,"QAW"]), family = binomial))
+```
+
+```{r}
+#Step 4: Computing the substitution estimator of the ATE.
+
+Qstar <- plogis(Q + epsilon*h)
+Psi <- mean(Qstar[,"Q1W"] - Qstar[,"Q0W"]);cat("TMLE_Psi:", Psi)
+```
+#TMLE R package 
+
+```{r}
+library(tmle)
+w <- subset(ObsData, select=c(w1,w2,w3,w4))
+tmle <- tmle(Y, A, W=w)
+cat("TMLER_Psi:", tmle$estimates[[2]][[1]],";","95%CI(", tmle$estimates[[2]][[3]],")")
+cat("\n TMLE_bias:", True_Psi-tmle$estimates[[2]][[1]])
+cat("\n Relative_TMLE_bias:",(True_Psi-tmle$estimates[[2]][[1]])/True_Psi*100)
+```
+
+##AIPTW 
 
 
 
-# Thank you  
+##Using the Super-Learner  
+
+
+##**TMLE** $\hat{\Psi}(P_{0})$
+
+$$\hat{\psi}(P_{0}) = \Psi(Q_{n}^{*})= {\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right)}. (1)$$
+#Thank you  
 Thank you for participating in this tutorial.  
 If you have updates or changes that you would like to make, please send <a href="https://github.com/migariane/MALF" target="_blank">me</a> a pull request.
 Alternatively, if you have any questions, please e-mail me.  
