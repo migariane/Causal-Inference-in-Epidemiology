@@ -1,7 +1,7 @@
 ---
 title: "TMLE step by step"
 author: "By: Miguel Angel Luque Fernandez miguel-angel.luque@lshtm.ac.uk"
-date: "October 15th, 2016"
+date: "October 25th, 2016"
 output:  
   html_notebook:
     code_folding: show
@@ -97,7 +97,7 @@ $$\sigma({\psi_{0}})=\sqrt{\frac{Var(IC_{n})}{n}}.  (3)$$
 
 7. To estimate the ATE using the AIPTW estimator one can set the estimation equation (EE) (4) equal to cero and use bootstrap to derive 95% confidence intervals (CI). However, solving the EE using the generalized method of moments (GMM), stacking both equations (propensity score and outcome), reduces the estimation and inference steps to only one. However, given that the propensity score in equation (4) can easily fall outside the range [0, 1] if for some observations $$g_{n}(1|W_{i})$$ is close to 1 or 0. This represents the price of not being a substitution estimator as **TMLE**.        
 
-$$\psi_{0}^{AIPTW-ATE}\ \ =\ \frac{1}{n}\sum_{i=1}^{n}\left(\frac{I\left(A_{i}=1\right)}{g_n\left(1\left|W_{i}\right)\right)}\ -\ \frac{I\left(A_{i}=0\right)}{g_n\left(0\left|W_{i}\right)\right)}\ \right)\left[Y_{i}-\bar{Q}_{n}^{0}\left(A_{i},W_{i}\right)\right]+\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{0}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{0}\left(0,\ W_{i}\right) (4)$$
+$$\psi_{0}^{AIPTW-ATE}\ \ =\ \frac{1}{n}\sum_{i=1}^{n}\left(\frac{I\left(A_{i}=1\right)}{g_n\left(1\left|W_{i}\right)\right)}\ -\ \frac{I\left(A_{i}=0\right)}{g_n\left(0\left|W_{i}\right)\right)}\ \right)\left[Y_{i}-\bar{Q}_{n}^{0}\left(A_{i},W_{i}\right)\right]+\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{0}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{0}\left(0,\ W_{i}\right). (4)$$
 
 #Structural causal framework
 
@@ -140,23 +140,23 @@ The simulated data replicationg the DAG in Figure 1:
 
 ```{r}
 #install.packages("broom")
-options(digits=3)
+options(digits=4)
 generateData <- function(n){
   w1 <- rbinom(n, size=1, prob=0.5)
   w2 <- rbinom(n, size=1, prob=0.65)
   w3 <- round(runif(n, min=0, max=4), digits=3)
   w4 <- round(runif(n, min=0, max=5), digits=3)
-  A  <- rbinom(n, size=1, prob= plogis(-0.4 + 0.2*w2 + 0.15*w3 + 0.2*w4))
-  Y  <- rbinom(n, size=1, prob= plogis(-1 + A -0.1*w1 + 0.3*w2 + 0.25*w3 + 0.2*w4))
+  A  <- rbinom(n, size=1, prob= plogis(-0.4 + 0.2*w2 + 0.15*w3 + 0.2*w4 + 0.15*w2*w4))
+  Y  <- rbinom(n, size=1, prob= plogis(-1 + A -0.1*w1 + 0.3*w2 + 0.25*w3 + 0.2*w4 + 0.15*w2*w4))
   
   # counterfactual
-  Y.1 <- rbinom(n, size=1, prob= plogis(-1 + 1 -0.1*w1 + 0.3*w2 + 0.25*w3 + 0.2*w4))
-  Y.0 <- rbinom(n, size=1, prob= plogis(-1 + 0 -0.1*w1 + 0.3*w2 + 0.25*w3 + 0.2*w4))
+  Y.1 <- rbinom(n, size=1, prob= plogis(-1 + 1 -0.1*w1 + 0.3*w2 + 0.25*w3 + 0.2*w4 + 0.15*w2*w4))
+  Y.0 <- rbinom(n, size=1, prob= plogis(-1 + 0 -0.1*w1 + 0.3*w2 + 0.25*w3 + 0.2*w4 + 0.15*w2*w4))
   
   # return data.frame
   data.frame(w1, w2, w3, w4, A, Y, Y.1, Y.0)
 }
-set.seed(13579)
+set.seed(7777)
 ObsData <- generateData(n=10000)
 True_Psi <- mean(ObsData$Y.1-ObsData$Y.0);
 cat(" True_Psi:", True_Psi)
@@ -175,24 +175,25 @@ library(DT)
 datatable(head(ObsData, n = nrow(ObsData)), options = list(pageLength = 5, digits = 2))
 ```
 
-#TMLE implementation
+#TMLE simple implementation
 
-##E$_{0}$(Y|A,W) estimation
+$$\psi TMLE,n = \Psi(Q_{n}^{*})= {\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right)}.  (1)$$
+
+##$Q_{0}$(A,**W**) 
 Estimation of the initial probability of the outcome (Y) given the treatment (A) and the set of covariates (W), denoted as the $Q_{0}$(A,**W**). To estimate $Q_{0}$(A,**W**) we can use a standard logistic regression model: 
 
-$$\text{logit}[P(Y=1|A,W)]\,=\,\beta_{0}\,+\,\beta_{1}A\,+\,\beta_{2}^{T}W$$. 
+$$\text{logit}[P(Y=1|A,W)]\,=\,\beta_{0}\,+\,\beta_{1}A\,+\,\beta_{2}^{T}W.$$ 
 
 Therefore, we can estimate the initial probability as follows: 
 
-$$\bar{Q}^{0}(A,W)\,=\,\text{expit}(\hat{\beta_{0}}\,+\,\hat{\beta_{1}}A\,+\,\hat{\beta_{2}}^{T}W)$$ 
+$$\bar{Q}^{0}(A,W)\,=\,\text{expit}(\hat{\beta_{0}}\,+\,\hat{\beta_{1}}A\,+\,\hat{\beta_{2}}^{T}W).$$ 
 
 The predicted probability can be estimated using the Super Learner library implemented in the R package “Super-Learner” (Ref) to include any terms that are functions of A or W (e.g., polynomial terms of A and W, as well as the interaction terms of A and W, can be considered). Consequently, for each subject, the predicted probabilities for both potential outcomes $\bar{Q}^{0}(0,W)$ and  $\bar{Q}^{0}(1,W)$ can be estimated by setting A = 0 and A = 1 for everyone respectively:
-$$\bar{Q}^{0}(0,W)\,=\,\text{expit}(\hat{\beta_{0}}\,+\,\hat{\beta_{2}}^{T}W)$$
+$$\bar{Q}^{0}(0,W)\,=\,\text{expit}(\hat{\beta_{0}}\,+\,\hat{\beta_{2}}^{T}W),$$
 and,  
-$$\bar{Q}^{0}(1,W)\,=\,\text{expit}(\hat{\beta_{0}}\,+\,\hat{\beta_{1}}A\,+\,\hat{\beta_{2}}^{T}W)$$
+$$\bar{Q}^{0}(1,W)\,=\,\text{expit}(\hat{\beta_{0}}\,+\,\hat{\beta_{1}}A\,+\,\hat{\beta_{2}}^{T}W).$$
 
 ```{r}
-#Step One
 ObsData <-subset(ObsData, select=c(w1,w2,w3,w4,A,Y))
 Y  <- ObsData$Y
 A  <- ObsData$A
@@ -200,53 +201,123 @@ w1 <- ObsData$w1
 w2 <- ObsData$w2
 w3 <- ObsData$w3
 w4 <- ObsData$w4
-m <-glm(Y ~ A + w1 + w2 + w3 + w4, family=binomial, data=ObsData)
-Q<- cbind(QAW = predict(m),
-    Q1W = predict(m, newdata=data.frame(A = 1, w1, w2, w3, w4)),
-    Q0W = predict(m, newdata=data.frame(A = 0, w1, w2, w3, w4)));mean(Q1W-Q0W)
-````
+m  <- glm(Y ~ A + w1 + w2 + w3 + w4, family=binomial, data=ObsData)
+Q  <- cbind(QAW = predict(m),
+            Q1W = predict(m, newdata=data.frame(A = 1, w1, w2, w3, w4)),
+            Q0W = predict(m, newdata=data.frame(A = 0, w1, w2, w3, w4)))
+Q0 <- as.data.frame(Q);mean(Q0$Q1W-Q0$Q0W)
+```
 
+##Step 2: $g_{0}(A,W)$
 ```{r}
-#Step 2: model for the treatment
-          
 g <- glm(A ~ w2 + w3 + w4, family = binomial)
-g1w = predict(g, type ="response")
+g1w = predict(g, type ="response");summary(g1w)
 ```
-
+##Step 3: HAW and $\epsilon$
 ```{r}
-#Step 3: iterative fluctuation of the initial estimate of the outcome E0(Y|A, W)
-
 h <- cbind(A/g1w -(1-A)/(1-g1w), 1/g1w, -1/(1-g1w))
-epsilon <- coef(glm(Y ~ -1 + h[,1] + offset(Q[,"QAW"]), family = binomial))
+epsilon <- coef(glm(Y ~ -1 + h[,1] + offset(Q[,"QAW"]), family = binomial));epsilon
 ```
 
+##Step 4: $\bar{Q_{n}}^{*}$.
 ```{r}
-#Step 4: Computing the substitution estimator of the ATE.
-
 Qstar <- plogis(Q + epsilon*h)
 Psi <- mean(Qstar[,"Q1W"] - Qstar[,"Q0W"]);cat("TMLE_Psi:", Psi)
+cat("\n TMLE.SI_bias:", abs(True_Psi-Psi))
+cat("\n Relative_TMLE.SI_bias:",abs(True_Psi-Psi)/True_Psi*100,"%")
 ```
-#TMLE R package 
+
+#Comparison with AIPTW
+
+$$\psi_{0}^{AIPTW-ATE}\ \ =\ \frac{1}{n}\sum_{i=1}^{n}\left(\frac{I\left(A_{i}=1\right)}{g_n\left(1\left|W_{i}\right)\right)}\ -\ \frac{I\left(A_{i}=0\right)}{g_n\left(0\left|W_{i}\right)\right)}\ \right)\left[Y_{i}-\bar{Q}_{n}^{0}\left(A_{i},W_{i}\right)\right]+\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{0}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{0}\left(0,\ W_{i}\right). (4)$$
+
+```{r}
+Q <- as.data.frame(Q)
+AIPTW <- mean((h[,1]*(Y-Q$QAW))+(Q$Q1W-Q$Q0W)); AIPTW
+cat("\n AIPTW_bias:", abs(True_Psi-AIPTW))
+cat("\n Relative_AIPTW_bias:",abs(True_Psi-AIPTW)/True_Psi*100,"%")
+```
+
+#TMLE using the Super-Learner  
+
+```{r}
+#Q0
+library(SuperLearner)
+#Specify SuperLearner libraries
+SL.library <- c("SL.glm","SL.step","SL.glm.interaction")
+#Data frame with X with baseline covariates and exposure
+X <- subset(ObsData, select=c(A, w1, w2, w3, w4))
+n <- nrow(ObsData)
+#Create data frames with A=1 and A=0
+X1<-X0<-X
+X1$A <-1
+X0$A <-0
+#Create new data by stacking
+newdata <- rbind(X,X1,X0)
+#Call superlearner
+Qinit <- SuperLearner(Y=ObsData$Y, X=X, newX=newdata, SL.library=SL.library, family="binomial")
+Qinit
+#Predictions
+#Pred prob of survival given A, W
+QbarAW <- Qinit$SL.predict[1:n]
+#Pred prob of surv for each subject given A=1 and w
+Qbar1W <- Qinit$SL.predict[(n+1):(2*n)]
+#Pred prob of surv for each subject given A=0 and w
+Qbar0W <- Qinit$SL.predict[(2*n+1):(3*n)]
+#Simple substitution estimator Psi(Q0)
+PsiHat.SS <- mean(Qbar1W-Qbar0W);PsiHat.SS
+```
+
+```{r}
+#Step 2 g_0(A|W) with SuperLearner
+w <- subset(ObsData, select=c(w1,w2,w3,w4))
+gHatSL <- SuperLearner(Y=ObsData$A, X=w, SL.library=SL.library, family = binomial)
+gHatSL;mean(gHatSL)
+#Generate the pred prob of A=1 and, A=0 given covariates
+gHat1W <- gHatSL$SL.predict
+gHat0W <- 1-gHat1W
+#Step 3: Clever covariate
+HAW <- as.numeric(ObsData$A==1)/gHat1W - as.numeric(ObsData$A==0)/gHat0W;mean(HAW)
+H1W <-  1/gHat1W
+H0W <- -1/gHat0W
+```
+```{r}
+#Step 4: Substitution estimaiton Q* of the ATE.
+logitUpdate <- glm(ObsData$Y ~ -1 + offset(qlogis(QbarAW))+HAW, family='binomial')
+eps <- logitUpdate$coef;eps
+#Calculating the predicted values for each subject under each txt
+QbarAW.star <- plogis(qlogis(QbarAW)+eps*HAW)
+Qbar1W.star <- plogis(qlogis(Qbar1W)+eps*H1W)
+Qbar0W.star <- plogis(qlogis(Qbar0W)+eps*H0W)
+PsiHat.TMLE.SL <- mean(Qbar1W.star) - mean(Qbar0W.star)
+cat("PsiHat.TMLE.SL:", PsiHat.TMLE.SL)
+cat("\n PsiHat.TMLE.SL_bias:", abs(True_Psi-PsiHat.TMLE.SL))
+cat("\n Relative_PsiHat.TMLE.SL_bias:",abs(True_Psi-PsiHat.TMLE.SL)/True_Psi*100,"%")
+```
+
+#R-TMLE
 
 ```{r}
 library(tmle)
 w <- subset(ObsData, select=c(w1,w2,w3,w4))
 tmle <- tmle(Y, A, W=w)
 cat("TMLER_Psi:", tmle$estimates[[2]][[1]],";","95%CI(", tmle$estimates[[2]][[3]],")")
-cat("\n TMLE_bias:", True_Psi-tmle$estimates[[2]][[1]])
-cat("\n Relative_TMLE_bias:",(True_Psi-tmle$estimates[[2]][[1]])/True_Psi*100)
+cat("\n TMLE_bias:", abs(True_Psi-tmle$estimates[[2]][[1]]))
+cat("\n Relative_TMLE_bias:",abs(True_Psi-tmle$estimates[[2]][[1]])/True_Psi*100,"%")
 ```
 
-##AIPTW 
+#R-TMLE improving prediction
 
+```{r}
+SL.TMLER.Psi <- tmle(Y=Y, A=A, W=w, family="binomial", 
+    Q.SL.library = c("SL.glm", "SL.step", "SL.glm.interaction", "SL.gam", "SL.randomForest"),
+    g.SL.library = c("SL.glm", "SL.step", "SL.glm.interaction", "SL.gam", "SL.randomForest"))
 
+cat("SL.TMLER.Psi:", SL.TMLER.Psi$estimates[[2]][[1]],";","95%CI(", SL.TMLER.Psi$estimates[[2]][[3]],")")
+cat("\n SL.TMLER.Psi_bias:", abs(True_Psi-SL.TMLER.Psi$estimates[[2]][[1]]))
+cat("\n Relative_SL.TMLER.Psi_bias:",abs(True_Psi-SL.TMLER.Psi$estimates[[2]][[1]])/True_Psi*100,"%")
+```
 
-##Using the Super-Learner  
-
-
-##**TMLE** $\hat{\Psi}(P_{0})$
-
-$$\hat{\psi}(P_{0}) = \Psi(Q_{n}^{*})= {\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right)}. (1)$$
 #Thank you  
 Thank you for participating in this tutorial.  
 If you have updates or changes that you would like to make, please send <a href="https://github.com/migariane/MALF" target="_blank">me</a> a pull request.
