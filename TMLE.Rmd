@@ -1,12 +1,11 @@
 ---
 title: "TMLE step by step"
-author: "By: Miguel Angel Luque Fernandez miguel-angel.luque@lshtm.ac.uk"
+author: 'By: Miguel Angel Luque Fernandez miguel-angel.luque@lshtm.ac.uk'
 date: "October 25th, 2016"
-output:  
+output:
   html_notebook:
     code_folding: show
     highlight: default
-    #keep_md: yes
     number_sections: yes
     theme: journal
     toc: yes
@@ -14,10 +13,14 @@ output:
       collapsed: no
       smooth_scroll: yes
       toc_depth: 3
+  html_document:
+    toc: yes
+  pdf_document:
+    toc: yes
+font-family: Risque
+font-import: http://fonts.googleapis.com/css?family=Risque
 csl: references/isme.csl
 bibliography: references/bibliography.bib
-font-import: http://fonts.googleapis.com/css?family=Risque
-font-family: 'Risque'
 ---
 
 <!--BEGIN:  Set the global options and load packages-->
@@ -258,6 +261,7 @@ where the variance of the ATE:
 $$\sigma({\psi_{0}})=\sqrt{\frac{Var(IC_{n})}{n}}.  (3)$$
 
 ```{r}
+Q <- as.data.frame(Q)
 IC <- h[,1]*(Y-Q$QAW) + Q$Q1W - Q$Q0W - Psi;summary(IC)
 n <- nrow(ObsData)
 varHat.IC <- var(IC)/n; varHat.IC
@@ -272,7 +276,6 @@ cat("\n Relative_TMLE.SI_bias:",abs(True_Psi-Psi)/True_Psi*100,"%")
 $$\psi_{0}^{AIPTW-ATE}\ \ =\ \frac{1}{n}\sum_{i=1}^{n}\left(\frac{I\left(A_{i}=1\right)}{g_n\left(1\left|W_{i}\right)\right)}\ -\ \frac{I\left(A_{i}=0\right)}{g_n\left(0\left|W_{i}\right)\right)}\ \right)\left[Y_{i}-\bar{Q}_{n}^{0}\left(A_{i},W_{i}\right)\right]+\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{0}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{0}\left(0,\ W_{i}\right). (4)$$
 
 ```{r}
-Q <- as.data.frame(Q)
 AIPTW <- mean((h[,1]*(Y-Q$QAW))+(Q$Q1W-Q$Q0W)); AIPTW
 cat("\n AIPTW_bias:", abs(True_Psi-AIPTW))
 cat("\n Relative_AIPTW_bias:",abs(True_Psi-AIPTW)/True_Psi*100,"%")
@@ -351,8 +354,8 @@ cat("\n Relative_TMLE_bias:",abs(True_Psi-tmle$estimates[[2]][[1]])/True_Psi*100
 
 ```{r}
 SL.TMLER.Psi <- tmle(Y=Y, A=A, W=w, family="binomial", 
-    Q.SL.library = c("SL.glm", "SL.step", "SL.glm.interaction", "SL.gam", "SL.randomForest"),
-    g.SL.library = c("SL.glm", "SL.step", "SL.glm.interaction", "SL.gam", "SL.randomForest"))
+    Q.SL.library = c("SL.glm", "SL.glm.interaction", "SL.gam", "SL.randomForest"),
+    g.SL.library = c("SL.glm", "SL.glm.interaction", "SL.gam", "SL.randomForest"))
 
 cat("SL.TMLER.Psi:", SL.TMLER.Psi$estimates[[2]][[1]],";","95%CI(", SL.TMLER.Psi$estimates[[2]][[3]],")")
 cat("\n SL.TMLER.Psi_bias:", abs(True_Psi-SL.TMLER.Psi$estimates[[2]][[1]]))
