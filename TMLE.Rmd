@@ -1,7 +1,7 @@
 ---
-title: "TMLE step by step"
-author: 'By: Miguel Angel Luque Fernandez miguel-angel.luque@lshtm.ac.uk'
-date: "October 25th, 2016"
+title: "Taregeted Maximum Likelihood Estimation for a Binary Outcome: Tutorial and Guided Implementation"
+author: 'By: Miguel Angel Luque Fernandez, miguel-angel.luque@lshtm.ac.uk'
+date: "November 1st, 2016"
 output:
   html_notebook:
     code_folding: show
@@ -32,14 +32,14 @@ knitr::opts_chunk$set(eval = TRUE,
                       collapse = FALSE,
                       dependson = NULL,
                       engine = "R", # Chunks will always have R code, unless noted
-                      error = TRUE,
+                      error = FALSE,
                       fig.path="Figures/",  # Set the figure options
                       fig.align = "center", 
                       fig.width = 7,
                       fig.height = 7)
 #You need the suggested packages to run this notebook
-#install.packages('tmle', 'SuperLearner', 'broom', 'DT')
-require('tmle', 'SuperLearner', 'broom', 'DT')
+#install.packages('tmle', 'SuperLearner', 'DT')
+require('tmle', 'SuperLearner', 'DT')
 ```
 
 #Introduction
@@ -81,7 +81,7 @@ However, Mark van der Laan and collaborators have developed a double-robust esti
 
 #TMLE
 
-**TMLE** allows for data-adaptive estimation while obtaining valid statistical inferencebased on the targeted minimum loss-based estimation and machine learning algorithms to minimize the risk of model misspecification [@van2011]. The main characteristics of **TMLE** are:      
+**TMLE** allows for data-adaptive estimation while obtaining valid statistical inference based on the targeted minimum loss-based estimation and machine learning algorithms to minimize the risk of model misspecification [@van2011]. The main characteristics of **TMLE** are:      
 
 1. **TMLE** is a general algorithm for the construction of double-robust, semiparametric, efficient substitution estimators. **TMLE** allows for data-adaptive estimation while obtaining valid statistical inference. 
 
@@ -134,7 +134,6 @@ The observed outcome value, under the observed treatment, is equal to the counte
 **Figure 2**. TMLE flow chart (Road map)  
 **Source**: Mark van der Laan and Sherri Rose. Targeted learning: causal inference for observational and experimental dataSpringer Series in Statistics, 2011.  
 
-
 #Data generation
 
 ##Simulation 
@@ -151,7 +150,6 @@ The simulated data replicationg the DAG in Figure 1:
 5. W4: Comorbidities (scale from 1 to 5)  
 
 ```{r}
-#install.packages("broom")
 options(digits=4)
 generateData <- function(n){
   w1 <- rbinom(n, size=1, prob=0.5)
@@ -222,54 +220,82 @@ Q  <- cbind(QAW = predict(m),
 Q0 <- as.data.frame(Q)
 Y1<-Q0$Q1W 
 Y0<-Q0$Q0W
-#Inverse logit (probability scale)
-mean(exp(Y1)/(1+exp(Y1)) - exp(Y0)/(1+exp(Y0)))
-```
 
+#Inverse logit (probability scale)
+psi <- (exp(Y1)/(1+exp(Y1)) - exp(Y0)/(1+exp(Y0)))
+Psi <- mean(exp(Y1)/(1+exp(Y1)) - exp(Y0)/(1+exp(Y0))); cat("\n Q0:", Psi)
+df <- round(cbind(Q0,psi), digits= 3)
+```
+**Visualizing** the first step:  
+
+```{r, warning=FALSE}
+datatable(head(df, n = nrow(df)), options = list(pageLength = 5, digits = 3))
+```
 ##Step 2: $g_{0}(A,W)$
 Estimation of the probability of the treatment (A) given the set of covariates (W), denoted as $g_{0}(A,W)$. We can use again a logistic regression model and to improve the prediction algorithm we can use the Super-Learner library or any other machine learning estrategy:  
 
 $$\text{logit}[P(A=1|W)]\,=\,\beta_{0}\,+\,\beta_{1}^{T}W.$$ 
 Then, we estimate the predicted probability of P(A|W) = $\hat{g}(1,W)$ using:  
 
-$$\hat{g}(1,W)\,=\,\text{expit}\,=\,(\hat{\beta_{0}}\,+\,\hat{\beta_{2}^{T}}W).$$ 
+$$\hat{g}(1,W)\,=\,\text{expit}\,(\hat{\beta_{0}}\,+\,\hat{\beta_{2}^{T}}W).$$ 
 
 ```{r}
 g <- glm(A ~ w2 + w3 + w4, family = binomial)
-g1w = predict(g, type ="response");summary(g1w)
+g1W = predict(g, type ="response");cat("\n Propensity score = g1W","\n");summary(g1W)
 ```
 
 ##Step 3: HAW and $\epsilon$
-This step aims to find a better prediction model targeted at minimising the mean squared error (MSE) for the potential outcomes by using the so-called efficient IC estimation equation.  
-For the ATE on step convergence is guaranteed given $\bar{Q}^{0}$ and $\hat{g}(1,W)$.    
+This step aims to find a better prediction model targeted at minimising the mean squared error (MSE) for the potential outcomes. For the ATE on step convergence is guaranteed given $\bar{Q}^{0}$ and $\hat{g}(1,W)$.  
+
 The fluctuating parameter is modelled using a parametric working model to estimate the fluctuation parameters $\epsilon_{0}$ and $\epsilon_{1}$ as follows:    
 
 $$\bar{Q^{1}}(A,W)\,=\,\text{expit}\left[\text{logit}\left(\bar{Q^{0}}(A, W)\right)\,+\,\hat{\epsilon_{0}}H_{0}(A,W)\,+\,\hat{\epsilon_{1}}H_{1}(A,W)\right]  (5)$$
-$$\bar{Q^{1}}(0,W)\,=\,\text{expit}\left[\text{logit}\left(\bar{Q^{0}}(A,W)\right)\,+\,\hat{\epsilon_{0}}H_{0}(A,W)\right]$$
+$$\bar{Q^{1}}(0,W)\,=\,\text{expit}\left[\text{logit}\left(\bar{Q^{0}}(A,W)\right)\,+\,\hat{\epsilon_{0}}H_{0}(0,W)\right]$$
 
-$$\bar{Q^{1}}(1,W)\,=\,\text{expit}\left[\text{logit}\left(\bar{Q^{0}}(A,W)\right)\,+\,\hat{\epsilon_{1}}H_{1}(A,W)\right]$$
+$$\bar{Q^{1}}(1,W)\,=\,\text{expit}\left[\text{logit}\left(\bar{Q^{0}}(A,W)\right)\,+\,\hat{\epsilon_{1}}H_{1}(1,W)\right]$$
 Where,
-$$H_{0}(A,W)\,=\,\frac{I(A=0)}{\hat{g}(0|W)}\;\text{and},\;H_{1}(A,W)\,=\,\frac{I(A=1)}{\hat{g}(1|W)}$$ are referred to as clever covariates (note that $\hat{g}(A|W)$ is estimted from step 2).
+$$H_{0}(A,W)\,=\,\frac{I(A=0)}{\hat{g}(0|W)}\;\text{and},\;H_{1}(A,W)\,=\,\frac{I(A=1)}{\hat{g}(1|W)}$$ are the stabilized inverse probability treatment (A) weights (IPTW), called the clever covariates and I defines an indicator function (note that $\hat{g}(A|W)$ is estimted from step 2).  
 
 The fluctuation parameters $(\hat{\epsilon}_{0}\,,\,\hat{\epsilon}_{1})$ are estimated using maximum likelihood procedures by setting $\text{logit}(\bar{Q^{0}}(A,W))$ as an offset in a intercept-free logistic regression with $H_{0}$ and $H_{1}$ as independent variables.  
 
-Afterwards, the estimated probability of the potential outcomes is updated by the substitution parameters $(\hat{\epsilon_{0}}\,,\,\hat{\epsilon_{1}})$. The substitution update is performed by setting A = 0 and A = 1 for each subject in the initial estimate probability of the potential outcomes $\bar{Q^{1}}(0,W)\,,\,\bar{Q^{1}}(1,W)$, as well as in the clever covariates $H_{0}(0,W)\;\text{and}\; H_{1}(1,W)$. 
-
 ```{r}
 #Model 5: Clever covariate and fluctuating/substitution paramteres
-h <- cbind(A/g1w -(1-A)/(1-g1w), 1/g1w, -1/(1-g1w))
-epsilon <- coef(glm(Y ~ -1 + h[,1] + offset(Q[,"QAW"]), family = binomial));epsilon
+h <- cbind(gAW=(A/g1w -(1-A)/(1-g1w)), g1W=(1/g1w), g0W=(-1/(1-g1w)))
+epsilon <- coef(glm(Y ~ -1 + h[,1] + offset(Q[,"QAW"]), family = binomial));cat("\n Epsilon:",epsilon)
+df <- round(cbind(Q0,PS=(g1w),H=(h),epsilon), digits= 4)
+```
+**Visualizing** the 3rd step (PS = propensity score; H = IPTW or clever covarites):    
+
+```{r, warning=FALSE}
+datatable(head(df, n = nrow(df)), options = list(pageLength = 5, digits = 3))
 ```
 
 ##Step 4: $\bar{Q_{n}}^{*}$
+
+Afterwards, the estimated probability of the potential outcomes is updated by the substitution parameters $(\hat{\epsilon_{0}}\,,\,\hat{\epsilon_{1}})$. The substitution update is performed by setting A = 0 and A = 1 for each subject in the initial estimate probability of the potential outcomes $\bar{Q^{1}}(0,W)\,,\,\bar{Q^{1}}(1,W)$, as well as in the clever covariates $H_{0}(0,W)\;\text{and}\; H_{1}(1,W)$. 
+
 For the ATE, the updated estimate of the potential outcomes only needs one iteration $\Psi(\bar{Q_{n}}^{*})$ from $\bar{Q}^{0}(A,W)\,=>\bar{Q^{1}}(A,W)$. Therefore, model (5) targets $E[\hat{Y}_{A=0}]\;\text{and}\; E[\hat{Y}_{A=1}]$ simultaneously by including both $H_{0}(A,W)\,\text{and}\,H_{1}(A,W)$ in the model. Hence $\psi$ is finally estimated as follows:  
 
 $$\psi TMLE,n = \Psi(Q_{n}^{*})= {\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right)}.  (1)$$
+
 ```{r}
 Qstar <- plogis(Q + epsilon*h)
-Psi <- mean(Qstar[,"Q1W"] - Qstar[,"Q0W"]);cat("TMLE_Psi:", Psi)
+psi <- (Qstar[,"Q1W"] - Qstar[,"Q0W"]);cat("TMLE_Psi:")
+Psi <- mean(Qstar[,"Q1W"] - Qstar[,"Q0W"]);
+cat("TMLE_Psi:", Psi)
 cat("\n TMLE.SI_bias:", abs(True_Psi-Psi))
 cat("\n Relative_TMLE.SI_bias:",abs(True_Psi-Psi)/True_Psi*100,"%")
+```
+
+**Visualizing** the 4th step (H = IPTW or clever covarites):  
+
+```{r, warning=FALSE}
+df <- round(cbind(Q0=(Q0),H=(h),epsilon,psi), digits= 4)
+datatable(head(df, n = nrow(df)), options = list(pageLength = 5, digits = 3))
+```
+```{r}
+cat("\n Psi first row:", plogis((0.001189*1.2399)+(2.3678))-(plogis((0.001189*-5.1681)+(1.3413))))
+cat("\n TMLE_Psi:", Psi)
 ```
 
 ##Step 5: Inference
@@ -299,7 +325,7 @@ cat("\n Relative_TMLE.SI_bias:",abs(True_Psi-Psi)/True_Psi*100,"%")
 #TMLE vs. AIPTW
 1. The advantages of **TMLE** have been repeatedly demonstrated in both simulation studies and applied analyses [@van2011]. 
 
-2.Evidence shows that **TMLE** provides the less unbiased ATE estimate compared with other double-robust estimators [@neu2005], [@van2011] such as the combination of regression adjustment with inverse probability of treatment weighting (IPTW-RA) and the augmented inverse probability of treatment weighting (AIPTW). The **AIPTW** estimation is a two step procedure with two equations (propensity score equation and, mean outcome equation).  
+2. Evidence shows that **TMLE** provides the less unbiased ATE estimate compared with other double-robust estimators [@neu2005], [@van2011] such as the combination of regression adjustment with inverse probability of treatment weighting (IPTW-RA) and the augmented inverse probability of treatment weighting (AIPTW). The **AIPTW** estimation is a two step procedure with two equations (propensity score equation and, mean outcome equation).  
 
 3. To estimate the ATE using the **AIPTW** estimator one can set the estimation equation (EE) (4) equal to cero and use bootstrap to derive 95% confidence intervals (CI). However, solving the EE using the generalized method of moments (GMM), stacking both equations (propensity score and outcome), reduces the estimation and inference steps to only one. However, given that the propensity score in equation (4) can easily fall outside the range [0, 1] (if for some observations $g_{n}(1|W_{i})$ is close to 1 or 0) the **AIPTW** estimation can be unstable (near violation of the positivity assumption). This represents the price of not being a substitution estimator as **TMLE**.        
 
@@ -360,14 +386,16 @@ PsiHat.SS <- mean(Qbar1W-Qbar0W);PsiHat.SS
 
 2. **Step two**: $g_{0}(A,W)$ prediction
 
-```{r}
+```{r, warning=FALSE}
 #Step 2 g_0(A|W) with SuperLearner
 w <- subset(ObsData, select=c(w1,w2,w3,w4))
 gHatSL <- SuperLearner(Y=ObsData$A, X=w, SL.library=SL.library, family = binomial)
 gHatSL;mean(gHatSL)
+
 #Generate the pred prob of A=1 and, A=0 given covariates
 gHat1W <- gHatSL$SL.predict
 gHat0W <- 1-gHat1W
+
 #Step 3: Clever covariate
 HAW <- as.numeric(ObsData$A==1)/gHat1W - as.numeric(ObsData$A==0)/gHat0W;mean(HAW)
 H1W <-  1/gHat1W
@@ -391,7 +419,12 @@ cat("\n Relative_PsiHat.TMLE.SL_bias:",abs(True_Psi-PsiHat.TMLE.SL)/True_Psi*100
 
 #R-TMLE
 
-Using the R-package **tmle**
+Using the R-package **tmle**.  
+
+The basic implementation of TMLE in the R-package **tmle** uses by default three algorithms:      
+1. SL libraries SL.glm (main terms logistic regression of A and W),    
+2. SL.step (stepwise forward and backward model selection using AIC criterion, restricted to second order polynomials) and,  
+3. SL.glm.interaction (a glm variant that include second order polynomials and two by two interactions of the main terms included in the model).    
 
 ```{r}
 library(tmle)
@@ -404,7 +437,7 @@ cat("\n Relative_TMLE_bias:",abs(True_Psi-tmle$estimates[[2]][[1]])/True_Psi*100
 
 #R-TMLE improving prediction
 
-In addition to the default algorithms implemented in the R-tmle package, we can improve our estimation calling more efficient machine learing algorithms, such as generalized additive models and the Random Forest in this particular example:    
+In addition to the default algorithms implemented in the R-tmle package, we can improve our estimation calling more efficient machine learing algorithms, such as generalized additive models, the Random Forest and, Recursive Partitioning and Regression Trees in this particular example:    
 
 ```{r}
 SL.TMLER.Psi <- tmle(Y=Y, A=A, W=w, family="binomial", 
@@ -421,12 +454,13 @@ We have demonstrated:
 2. TMLE **best performance** is obtained when calling more advanvanced **Super-Learner** algorithms.     
  
 # Appendix One
-Efron in 1982 showed that the empirical **Influence Curve** estimate of standar error is the same as the one obtained using the infinitesimal jackknife and the nonparametric deltha method [@efron1982]. 
+Efron in 1982 showed that the empirical **Influence Curve** estimate of standar error is the same as the one obtained using the **infinitesimal jackknife** and the **nonparametric deltha method** [@efron1982].  
+
 1. The Delat Method = First order of the Taylor series expansion: 
 $$f(x) \approx f(x)\,-\,f(\mu)\,+\,(x\,-\,\mu)f'(\mu);$$   
-where $f'(\mu)$ is the derivative of the function with respect to X evaluated at the mean of X. Therefore, squaring both terms, the variance is approximately:
+where $f'(\mu)$ is the derivative of the function with respect to X evaluated at the mean of X. Therefore, squaring both terms, the variance is approximately estimate as follwos:
 $$\text{E}[f(x)-f(\mu)]^{2}\approx \text{E}(x\,-\,\mu)^{2}\,\times\,[f'(\mu)]^{2};$$
-The left-hand sie of the above equation is approximately the variance of $f(x)$ and applied to the empirical distribution of X, the sample estimate of variance for X replaces:
+The left-hand side of the above equation is approximately the variance of $f(x)$ and applied to the empirical distribution of X, the sample estimate of variance for X replaces:
 $$\text{E}(x_{i}\,-\,\mu)^{2}.$$
 The infinitesimal jackknife estimate of the standard error is defined as follows:
 $$SD_{ij}(\theta_{e})\,=\,\left(\frac{\sum_{i=1}^{n}U_{i}^{2}}{n^{2}}\right)^{1/2};$$
