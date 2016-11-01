@@ -219,7 +219,11 @@ m  <- glm(Y ~ A + w1 + w2 + w3 + w4, family=binomial, data=ObsData)
 Q  <- cbind(QAW = predict(m),
             Q1W = predict(m, newdata=data.frame(A = 1, w1, w2, w3, w4)),
             Q0W = predict(m, newdata=data.frame(A = 0, w1, w2, w3, w4)))
-Q0 <- as.data.frame(Q);mean(Q0$Q1W-Q0$Q0W)
+Q0 <- as.data.frame(Q)
+Y1<-Q0$Q1W 
+Y0<-Q0$Q0W
+#Inverse logit (probability scale)
+mean(exp(Y1)/(1+exp(Y1)) - exp(Y0)/(1+exp(Y0)))
 ```
 
 ##Step 2: $g_{0}(A,W)$
@@ -404,8 +408,8 @@ In addition to the default algorithms implemented in the R-tmle package, we can 
 
 ```{r}
 SL.TMLER.Psi <- tmle(Y=Y, A=A, W=w, family="binomial", 
-    Q.SL.library = c("SL.glm", "SL.step", "SL.glm.interaction", "SL.gam", "SL.randomForest"),
-    g.SL.library = c("SL.glm", "SL.step", "SL.glm.interaction", "SL.gam", "SL.randomForest"))
+    Q.SL.library = c("SL.glm", "SL.step", "SL.glm.interaction", "SL.gam", "SL.randomForest", "SL.rpart"),
+    g.SL.library = c("SL.glm", "SL.step", "SL.glm.interaction", "SL.gam", "SL.randomForest", "SL.rpart"))
 
 cat("SL.TMLER.Psi:", SL.TMLER.Psi$estimates[[2]][[1]],";","95%CI(", SL.TMLER.Psi$estimates[[2]][[3]],")")
 cat("\n SL.TMLER.Psi_bias:", abs(True_Psi-SL.TMLER.Psi$estimates[[2]][[1]]))
