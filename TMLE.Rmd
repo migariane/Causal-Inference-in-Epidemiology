@@ -44,7 +44,7 @@ require('tmle', 'SuperLearner', 'DT')
 
 #Introduction
 
-During the last 30 years, the modern epidemiology has been able to identify significant limitations of classic epidemiologic methods when the focus is to explain the main effect of a risk factor on a disease or outcome.  
+During the last 30 years, **modern epidemiology** has been able to identify significant limitations of classic epidemiologic methods when the focus is to explain the main effect of a risk factor on a disease or outcome.  
 
 Causal Inference based on the **Neyma-Rubin Potential Outcomes Framework** [@rubin2011], first introduced in Social Science by Donal Rubin [@rubin1974] and later in Epidemiology and Biostatistics by James Robins [@robins1986], has provided the theory and statistical methods needed to overcome recurrent problems in observational epidemiologic research, such as:
 
@@ -500,7 +500,7 @@ devtools::session_info()
 Thank you for participating in this tutorial.  
 If you have updates or changes that you would like to make, please send <a href="https://github.com/migariane/MALF" target="_blank">me</a> a pull request.
 Alternatively, if you have any questions, please e-mail me. 
-You can cite this repository as:      
+You can cite this repository as:        
 Luque-Fernandez MA, (2016). Taregeted Maximum Likelihood Estimation for a Binary Outcome: Tutorial and Guided Implementation. GitHub repository, http://migariane.github.io/TMLE.nb.html.    
 **Miguel Angel Luque Fernandez**     
 **E-mail:** *miguel-angel.luque at lshtm.ac.uk*  
