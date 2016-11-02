@@ -268,11 +268,11 @@ df <- round(cbind(Q0,PS=(g1w),H=(h),epsilon), digits= 4)
 datatable(head(df, n = nrow(df)), options = list(pageLength = 5, digits = 3))
 ```
 
-##Step 4: $\bar{Q_{n}}^{*}$
+##Step 4 $\bar{Q_{n}}^{*}:\text{from}\,\bar{Q_{0}}^{0}\,\text{to}\,\bar{Q_{1}}^{1}$
 
-Afterwards, the estimated probability of the potential outcomes is updated by the substitution parameters $(\hat{\epsilon_{0}}\,,\,\hat{\epsilon_{1}})$. The substitution update is performed by setting A = 0 and A = 1 for each subject in the initial estimate probability of the potential outcomes $\bar{Q^{1}}(0,W)\,,\,\bar{Q^{1}}(1,W)$, as well as in the clever covariates $H_{0}(0,W)\;\text{and}\; H_{1}(1,W)$. 
+Afterwards, the estimated probability of the potential outcomes is updated by the substitution parameters $(\hat{\epsilon_{0}}\,,\,\hat{\epsilon_{1}})$. The substitution update is performed by setting A = 0 and A = 1 for each subject in the initial estimate probability of the potential outcomes $\bar{Q^{0}}(0,W)\,,\,\bar{Q^{0}}(1,W)$, as well as in the clever covariates $H_{0}(0,W)\;\text{and}\; H_{1}(1,W)$. 
 
-For the ATE, the updated estimate of the potential outcomes only needs one iteration $\Psi(\bar{Q_{n}}^{*})$ from $\bar{Q}^{0}(A,W)\,=>\bar{Q^{1}}(A,W)$. Therefore, model (5) targets $E[\hat{Y}_{A=0}]\;\text{and}\; E[\hat{Y}_{A=1}]$ simultaneously by including both $H_{0}(A,W)\,\text{and}\,H_{1}(A,W)$ in the model. Hence $\psi$ is finally estimated as follows:  
+For the $\Psi(\bar{Q_{n}}^{*})$, the updated estimate of the potential outcomes only needs one iteration $\Psi(\bar{Q_{n}}^{*})$ from $\bar{Q}^{0}(A,W)\,=>\bar{Q^{1}}(A,W)$. Therefore, model (5) targets $E[\hat{Y}_{A=0}]\;\text{and}\; E[\hat{Y}_{A=1}]$ simultaneously by including both $H_{0}(A,W)\,\text{and}\,H_{1}(A,W)$ in the model. Hence $\psi$ is finally estimated as follows:  
 
 $$\psi TMLE,n = \Psi(Q_{n}^{*})= {\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right)}.  (1)$$
 
