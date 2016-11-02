@@ -1,7 +1,7 @@
 ---
 title: "Taregeted Maximum Likelihood Estimation for a Binary Outcome: Tutorial and Guided Implementation"
 author: 'By: Miguel Angel Luque Fernandez, miguel-angel.luque@lshtm.ac.uk'
-date: "November 1st, 2016"
+date: "November 2nd, 2016"
 output:
   html_notebook:
     code_folding: show
@@ -44,7 +44,7 @@ require('tmle', 'SuperLearner', 'DT')
 
 #Introduction
 
-During the last 30 years, the modern epidemiology has been able to identify some important drawbacks of the classic epidemiologic methods (bivariate or multivariate adjusted models) when the focus is to explanation the main effect of a risk factor on a disease or outcome.  
+During the last 30 years, the modern epidemiology has been able to identify some important limitations of classic epidemiologic methods when the focus is to explain the main effect of a risk factor on a disease or outcome.  
 
 Causal Inference, first introudced in Social Science by Donal Rubin [@rubin1974] and later in Epidemiology and Biostatistics by James Robins [@robins1986], the **Neyma-Rubin Potential Outcomes framework** [@rubin1974],[@rubin2011] has provided the theory and statistical methods needed to identify and overcome recurrent problems in observational epidemologic research, such as:
 

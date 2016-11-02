@@ -1,6 +1,6 @@
 # Causal Inference in Epidemiology: a little overview
 
-During the last 30 years, the **modern epidemiology** has been able to identify some important drawbacks of the classic epidemiologic methods. **Causal Inference and the Neyma-Rubin Potential Outcomes framework** have provided the theory and statistical methods needed to identify recurrent problems in observational epidemologic research, such as:  
+During the last 30 years, the **Modern Epidemiology** has been able to identify some important limitations of classic epidemiologic methods when the focus is to explain the main effect of a risk factor on a disease or outcome. 
 
 1. non collapsibility of the odds and hazard ratios, 
 2. impact of paradoxical effects due to conditioning on colliders, 
