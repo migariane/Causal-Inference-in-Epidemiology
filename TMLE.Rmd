@@ -50,11 +50,9 @@ Causal Inference, first introudced in Social Science by Donal Rubin [@rubin1974]
 
 1. non collapsibility of the odds and hazard ratios,
 2. impact of paradoxical effects due to conditioning on colliders,
-3. left truncation,
-4. prevalent cases,
-5. selection bias related with the vague understanding of the effect of time on exposure and outcome and,
-6. effect of time dependent confounding and mediators,
-7. etc.
+3. selection bias related with the vague understanding of the effect of time on exposure and outcome and,
+4. effect of time dependent confounding and mediators,
+5. etc.
 
 To control for confounding, the classical epidemilogic methods require making the assumption that the effect measure is constant across levels of confounders included in the model.  
 
@@ -488,7 +486,7 @@ The principal interest of calling the Super-Learner is to obtain the less-unbias
 $$\bar Q_{0}\,=\, \text{arg min}_{\bar Q}E_{0}L(O, \bar Q),$$   
 where $L(O, \bar Q)$ is:
 $$ (Y \,-\, \bar Q(A, W))^{2}$$
-The **SL** algorithm first split the data into 10 blocks and fits each of the selected algoriths on the training set (non-shaded blocks), then predicts the estimated probabilities of the outcome (Y) using the validation set (shaded block) for each algorithm, based on the corresponding training set. Afterwards, the **SL** estimates the the cross-validating riks for each algorithm averaging the risks across validation sets resulting in one estimated cross-validated risk for each algorithm. Finally, the **SL** select the combination of Z that minimizes the cross-validation risk, defined as the minimum mean square error for each of the selected algorithms using Y and Z. A weighted combination of the algorithms (ensemble learning) in Z is then used to predict the outcome (Y) (see Figure 5).  
+The **SL** algorithm first split the data into 10 blocks and fits each of the selected algoriths on the training set (non-shaded blocks), then predicts the estimated probabilities of the outcome (Y) using the validation set (shaded block) for each algorithm, based on the corresponding training set. Afterwards, the **SL** estimates the the cross-validating riks for each algorithm averaging the risks across validation sets resulting in one estimated cross-validated risk for each algorithm. Finally, the **SL** selects the combination of Z that minimizes the cross-validation risk, defined as the minimum mean square error for each of the selected algorithms using Y and Z. A weighted combination of the algorithms (ensemble learning) in Z is then used to predict the outcome (Y) (see Figure 5).  
 
 ![](Figures/CV.png)
 
