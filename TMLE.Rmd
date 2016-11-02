@@ -278,7 +278,7 @@ $$\psi TMLE,n = \Psi(Q_{n}^{*})= {\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{1}\left(
 
 ```{r}
 Qstar <- plogis(Q + epsilon*h)
-psi <- (Qstar[,"Q1W"] - Qstar[,"Q0W"]);cat("TMLE_Psi:")
+psi <- (Qstar[,"Q1W"] - Qstar[,"Q0W"])
 Psi <- mean(Qstar[,"Q1W"] - Qstar[,"Q0W"]);
 cat("TMLE_Psi:", Psi)
 cat("\n TMLE.SI_bias:", abs(True_Psi-Psi))
