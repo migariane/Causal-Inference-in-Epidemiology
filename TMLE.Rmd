@@ -1,7 +1,7 @@
 ---
 title: "Taregeted Maximum Likelihood Estimation for a Binary Outcome: Tutorial and Guided Implementation"
 author: 'By: Miguel Angel Luque Fernandez'
-date: "November 2nd, 2016"
+date: "November 3rd, 2016"
 output:
   html_notebook:
     code_folding: show
@@ -56,7 +56,7 @@ Causal Inference based on the **Neyma-Rubin Potential Outcomes Framework** [@rub
 
 Classical epidemiologic methods to control for confounding require making the assumption that the effect measure is constant across levels of confounders included in the model.  
 
-Alternatively, James Robins in 1986 demonstrated that using standardisation, implemented through the use of the **G-formula**, allows obtaining a unconfounded marginal estimation of the causal average treatment effect (ATE) under causal untestable assumptions [@robins1986], [@robins2000]. The most commonly used estimator for a binary treatment effect is the risk difference or **ATE** = $\psi(P_{0})$.      
+Alternatively, James Robins in 1986 demonstrated that using standardisation, implemented through the use of the **G-formula**, allows obtaining a unconfounded marginal estimation of the causal average treatment effect (ATE) or risk difference under causal untestable assumptions [@robins1986], [@robins2000].       
 
 #The G-Formula
 
@@ -85,21 +85,21 @@ However, Mark van der Laan and collaborators have developed a double-robust esti
 
 2. **TMLE** implementation uses the G-computation estimand (G-formula). Briefly, the **TMLE** algorithm uses information in the estimated exposure mechanism P(A|W) to update the initial estimator of the conditional expectation of the outcome given the treatment and the set of covariates W, E$_{0}$(Y|A,W). 
 
-3. The targeted estimates are then substituted into the parameter mapping $\Psi$. The updating step achieves a targeted bias reduction for the parameter of interest $\psi(P_{0})$ (the true target parameter) and serves to solve the efficient score equation, namely the Influence Curve (IC). As a result, **TMLE** is a double robust estimator. 
+3. The targeted estimates are then substituted into the parameter mapping $\Psi$. The updating step achieves a targeted bias reduction for the parameter of interest $\Psi(P_{0})$ (the true target parameter) and serves to solve the efficient score equation, namely the Influence Curve (IC). As a result, **TMLE** is a **double-robust** estimator. 
 
-4. **TMLE** it will be consistent for $\psi(P_{0})$ if either the conditional expectation E$_{0}$(Y|A,W) or the exposure mechanism P$_{0}$(A|W) are estimated consistently.   
+4. **TMLE** it will be consistent for $\Psi(P_{0})$ if either the conditional expectation E$_{0}$(Y|A,W) or the exposure mechanism P$_{0}$(A|W) are estimated consistently.   
 
-5. **TMLE** will be efficient if the previous two functions are consistently estimated achieving the lowest asymptotic variance among a large class of estimators. These asymptotic properties typically translate into lower bias and variance in finite samples [@buh2016]. 
+5. **TMLE** will be efficient if the previous two functions are consistently estimated achieving the lowest asymptotic variance among a large class of estimators. These asymptotic properties typically translate into **lower bias and variance** in finite samples [@buh2016]. 
 
 6. The general formula to estimate the ATE using the TMLE method:  
 
 $$\psi TMLE,n = \Psi(Q_{n}^{*})= {\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right)}.  (1)$$
-7. The efficient influcence curve (IC) based on Hampel seminal paper [@hampel1974] is applied for statistical inference using TMLE:
+7. The efficient influcence curve (IC) based on Hampel seminal paper [@hampel1974] is applied for statistical inference using TMLE:  
 
-$$IC_{n}(O_{i})\ \ =\ \left(\frac{I\left(A_{i}=1\right)}{g_n\left(1\left|W_{i}\right)\right)}\ -\ \frac{I\left(A_{i}=0\right)}{g_n\left(0\left|W_{i}\right)\right)}\ \right)\left[Y_{i}-\bar{Q}_{n}^{1}\left(A_{i},W_{i}\right)\right]+\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right) - \psi TMLE,n. (2)$$
+$$IC_{n}(O_{i})\ \ =\ \left(\frac{I\left(A_{i}=1\right)}{g_n\left(1\left|W_{i}\right)\right)}\ -\ \frac{I\left(A_{i}=0\right)}{g_n\left(0\left|W_{i}\right)\right)}\ \right)\left[Y_{i}-\bar{Q}_{n}^{1}\left(A_{i},W_{i}\right)\right]+\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right) - \psi TMLE,n. (2)$$  
 where the variance of the ATE:  
 
-$$\sigma({\psi_{0}})=\sqrt{\frac{Var(IC_{n})}{n}}.  (3)$$
+$$\sigma({\psi_{0}})=\sqrt{\frac{Var(IC_{n})}{n}}.  (3)$$  
 
 8. The procedure is available with standard software such as the **tmle** package in R  [@gruber2011]. 
 
@@ -112,20 +112,21 @@ $$\sigma({\psi_{0}})=\sqrt{\frac{Var(IC_{n})}{n}}.  (3)$$
 
 ##DAG interpretation 
 
-The ATE is interpreted as the population risk difference in one-year mortality for lung cancer patients diagnosed via emergency presentations versus non-emergency presentations. Under causal assumptions, and compared with non-emergency presentations of lung cancer, the risk difference of one-year mortality for emregency presentations increases by approximately 20%. 
+The ATE is interpreted as the population risk difference in one-year mortality for lung cancer patients diagnosed via emergency presentations versus non-emergency presentations. Under causal assumptions, and compared with non-emergency presentations of lung cancer, the risk difference of one-year mortality for emergency presentations increases by approximately **20%**. 
 
 #Causal assumptions 
-Under the counterfactual framework the following assumptions have to be considered to estimate the $\psi(P_{0})$ (ATE) with a mondel for $P_{0}$ augmented with additional nontestatble cuasal assumptions [@rubin2011], [@van2011]:     
+To estimate the value of the true causal target parameter $\psi(P_{0})$ with a model for the true data generation process $P_{0}$ under the counterfactual framework augmented additional untestable cuasal assumptions have to be considered [@rubin2011], [@van2011]:          
 
 ##CMI or Randomization 
-($Y_{0},Y_{1}\perp$A|W) of the binary treatment effect (A) on the outcome (Y) given the set of observed covariates (W), where W = (W1,  W2, W3, … , Wk). 
+($Y_{0},Y_{1}\perp$A|W) or conditional mean independence (CMI) of the binary treatment effect (A) on the outcome (Y) given the set of observed covariates (W), where W = (W1,  W2, W3, … , $\text{W}_{k}$).  
 
-##Positivity 
-a ϵ A: P(A=a | W) > 0  
-P(A=1|W=w) > 0 and P(A=0| W = w) > 0 for each possible w.  
+##Positivity   
+a ϵ A: P(A=a | W) > 0   
+P(A=1|W=w) > 0 and P(A=0| W = w) > 0 for each possible w.      
 
-##Consistency or SUTVA: 
-The observed outcome value, under the observed treatment, is equal to the counterfactual outcome corresponding to the observed treatment for identical independent distributed (i.i.d.) variables.    
+##Consistency or SUTVA  
+The Stable Unit Treatment Value Assumption (SUTVA) incorporates
+both this idea that **units do not interfere** with one another, and also the concept that for each unit there is only a **single version of each treatment level**.      
 
 #TMLE flow chart 
 ![](Figures/tmle.png)
@@ -218,11 +219,12 @@ Q  <- cbind(QAW = predict(m),
 Q0 <- as.data.frame(Q)
 Y1<-Q0$Q1W 
 Y0<-Q0$Q0W
-
+QA1<-exp(Y1)/(1+exp(Y1))
+QA0<-exp(Y0)/(1+exp(Y0))
 #Inverse logit (probability scale)
 psi <- (exp(Y1)/(1+exp(Y1)) - exp(Y0)/(1+exp(Y0)))
 Psi <- mean(exp(Y1)/(1+exp(Y1)) - exp(Y0)/(1+exp(Y0))); cat("\n Q0:", Psi)
-df <- round(cbind(Q0,psi), digits= 3)
+df <- round(cbind(Logit=(Q),Pr.A1=QA1,Pr.A0=QA0,Psi=psi), digits= 3)
 ```
 **Visualizing** the first step:  
 
@@ -252,13 +254,13 @@ $$\bar{Q^{1}}(0,W)\,=\,\text{expit}\left[\text{logit}\left(\bar{Q^{0}}(A,W)\righ
 
 $$\bar{Q^{1}}(1,W)\,=\,\text{expit}\left[\text{logit}\left(\bar{Q^{0}}(A,W)\right)\,+\,\hat{\epsilon_{1}}H_{1}(1,W)\right]$$
 Where,
-$$H_{0}(A,W)\,=\,\frac{I(A=0)}{\hat{g}(0|W)}\;\text{and},\;H_{1}(A,W)\,=\,\frac{I(A=1)}{\hat{g}(1|W)}$$ are the stabilized inverse probability treatment (A) weights (IPTW), called the clever covariates and I defines an indicator function (note that $\hat{g}(A|W)$ is estimted from step 2).  
+$$H_{0}(A,W)\,=\,\frac{I(A=0)}{\hat{g}(0|W)}\;\text{and},\;H_{1}(A,W)\,=\,\frac{I(A=1)}{\hat{g}(1|W)}$$ are the stabilized inverse probability of treatment (A) weights (IPTW), namelly the **clever covariates** and **I** defines an indicator function (note that $\hat{g}(A|W)$ is estimted from step 2).  
 
 ```{r}
 #Model 5: Clever covariate and fluctuating/substitution paramteres
-h <- cbind(gAW=(A/g1w -(1-A)/(1-g1w)), g1W=(1/g1w), g0W=(-1/(1-g1w)))
+h <- cbind(gAW=(A/g1W -(1-A)/(1-g1W)), g1W=(1/g1W), g0W=(-1/(1-g1W)))
 epsilon <- coef(glm(Y ~ -1 + h[,1] + offset(Q[,"QAW"]), family = binomial));cat("\n Epsilon:",epsilon)
-df <- round(cbind(Q0,PS=(g1w),H=(h),epsilon), digits= 4)
+df <- round(cbind(Q0,PS=(g1W),H=(h),epsilon), digits= 4)
 ```
 **Visualizing** the 3rd step (PS = propensity score; H = IPTW or clever covarites):    
 
@@ -321,7 +323,7 @@ cat("\n Relative_TMLE.SI_bias:",abs(True_Psi-Psi)/True_Psi*100,"%")
 #TMLE vs. AIPTW
 1. The advantages of **TMLE** have repeatedly been demonstrated in both simulation studies and applied analyses [@van2011]. 
 
-2. Evidence shows that **TMLE** provides the less unbiased ATE estimate compared with other double-robust estimators [@neu2005], [@van2011] such as the combination of regression adjustment with inverse probability of treatment weighting (IPTW-RA) and the augmented inverse probability of treatment weighting (AIPTW). The **AIPTW** estimation is a two-step procedure with two equations (propensity score equation and, mean outcome equation).  
+2. Evidence shows that **TMLE** provides the less unbiased ATE estimate compared with other double-robust estimators [@neu2005], [@van2011] such as the combination of regression adjustment with inverse probability of treatment weighting (IPTW-RA) and the augmented inverse probability of treatment weighting (AIPTW). The **AIPTW** estimation is a two-step procedure with two equations (propensity score and mean outcome equations).  
 
 3. To estimate the ATE using the **AIPTW** estimator one can set the estimation equation (EE) (4) equal to zero and use bootstrap to derive 95% confidence intervals (CI). However, solving the EE using the generalized method of moments (GMM), stacking both equations (propensity score and outcome), reduces the estimation and inference steps to only one. However, given that the propensity score in equation (4) can easily fall outside the range [0, 1] (if for some observations $g_{n}(1|W_{i})$ is close to 1 or 0) the **AIPTW** estimation can be unstable (near violation of the positivity assumption). **AIPTW** instability under near violation of the positivity assumption represents the price of not being a substitution estimator as **TMLE**.        
 
@@ -337,10 +339,10 @@ Compared with AIPTW, TMLE showed smaller relative bias.
 
 #TMLE using the Super-Learner 
 
-With TMLE we can call the Super-Learner (SL). The SL is a R-package using V-fold cross-validation and ensembled learning (prediction using the all the predictions of multiple stacked learning algorithms) techniques to improve model prediction performance [@breiman1996].  
+With TMLE we can call the Super-Learner (SL). The SL is a R-package using V-fold cross-validation and ensembled learning (prediction using all the predictions of multiple stacked learning algorithms) techniques to improve model prediction performance [@breiman1996].  
 
 The basic implementation of TMLE in the R-package **tmle** uses by default three algorithms:    
-1. SL libraries SL.glm (main terms logistic regression of A and W),    
+1. SL.glm (main terms logistic regression of A and W),    
 2. SL.step (stepwise forward and backward model selection using AIC criterion, restricted to second order polynomials) and,  
 3. SL.glm.interaction (a glm variant that includes second order polynomials and two by two interactions of the main terms included in the model).    
 
@@ -364,7 +366,7 @@ n <- nrow(ObsData)
 X1<-X0<-X
 X1$A <-1
 X0$A <-0
-#Create new data by stacking
+#Create new data by stacking X, X1, and X0
 newdata <- rbind(X,X1,X0)
 #Call superlearner
 Qinit <- SuperLearner(Y=ObsData$Y, X=X, newX=newdata, SL.library=SL.library, family="binomial")
@@ -397,7 +399,7 @@ HAW <- as.numeric(ObsData$A==1)/gHat1W - as.numeric(ObsData$A==0)/gHat0W;mean(HA
 H1W <-  1/gHat1W
 H0W <- -1/gHat0W
 ```
-3. **Steps 3 and 4**: fluctuation step and substitution estimation for for for $\bar Q_{n}^{0}(A,W)$ to $\bar Q_{n}^{1}(A,W)$  
+3. **Steps 3 and 4**: fluctuation step and substitution estimation for $\bar Q_{n}^{0}(A,W)$ to $\bar Q_{n}^{1}(A,W)$  
 
 ```{r}
 #Step 4: Substitution estimaiton Q* of the ATE.
@@ -418,7 +420,7 @@ cat("\n Relative_PsiHat.TMLE.SL_bias:",abs(True_Psi-PsiHat.TMLE.SL)/True_Psi*100
 Using the R-package **tmle**.  
 
 The basic implementation of TMLE in the R-package **tmle** uses by default three algorithms:      
-1. SL libraries SL.glm (main terms logistic regression of A and W),    
+1. SL.glm (main terms logistic regression of A and W),    
 2. SL.step (stepwise forward and backward model selection using AIC criterion, restricted to second order polynomials) and,  
 3. SL.glm.interaction (a glm variant that includes second order polynomials and two by two interactions of the main terms included in the model).    
 
@@ -444,6 +446,8 @@ cat("SL.TMLER.Psi:", SL.TMLER.Psi$estimates[[2]][[1]],";","95%CI(", SL.TMLER.Psi
 cat("\n SL.TMLER.Psi_bias:", abs(True_Psi-SL.TMLER.Psi$estimates[[2]][[1]]))
 cat("\n Relative_SL.TMLER.Psi_bias:",abs(True_Psi-SL.TMLER.Psi$estimates[[2]][[1]])/True_Psi*100,"%")
 ```
+
+#Conclusions
 We have demonstrated:  
 
 1. **TMLE excels** the AIPTW estimator and,    
@@ -476,9 +480,10 @@ The **SL** algorithm provides a system based on V-fold cross-validation [@efron1
 **Source**: Sherri Rose in Esembles in Public Health and Healt Policy. May 4, 2016.  
 
 
-The basic implementation of TMLE in the R-package **tmle** uses by default three algorithms:
-1. SL libraries SL.glm (main terms logistic regression of A and W),  
-2. SL.step (stepwise forward and backward model selection using AIC criterion, restricted to second order polynomials) and, 3. SL.glm.interaction (a glm variant that includes second order polynomials and two by two interactions of the main terms included in the model).  
+The basic implementation of TMLE in the R-package **tmle** uses by default three algorithms:  
+1. SL.glm (main terms logistic regression of A and W),    
+2. SL.step (stepwise forward and backward model selection using AIC criterion,   restricted to second order polynomials) and,  
+3. SL.glm.interaction (a glm variant that includes second order polynomials and two by two interactions of the main terms included in the model).    
 
 The principal interest of calling the Super-Learner is to obtain the less-unbiased estimated for $\bar Q_{n}^{0}(A,W)$ and $g_{0}(A,W)$. It is achieved by obtaining the smallest expected loss function for Y or A (binary outcomes), respectively. For instance, the negative logarithmic loss function for Y is computed as the minimizer of the expected squared error loss:   
 $$\bar Q_{0}\,=\, \text{arg min}_{\bar Q}E_{0}L(O, \bar Q),$$   
@@ -489,7 +494,38 @@ The **SL** algorithm first split the data into ten blocks and fits each of the s
 ![](Figures/CV.png)
 
 **Figure 5**: Flow Diagram for the Super-Learner algorithm.  
-**Source**: Mark van der Laan and Sherri Rose. Targeted learning: causal inference for observational and experimental dataSpringer Series in Statistics, 2011.    
+**Source**: Mark van der Laan and Sherri Rose. Targeted learning: causal inference for observational and experimental dataSpringer Series in Statistics, 2011. 
+
+#Abbreviations
+
+TMLE: Targeted maximum likelihood estimation  
+SL: Super Learner  
+IPTW: Inverse probability of treatment weighting  
+AIPTW: Augmented inverse probability of treatment weighting  
+MSE: Mean squared error  
+SE: Standard error  
+EE: Estimation equations   
+GMM: Generalised method of moments  
+O: Observed ordered data structure  
+W: Vector of covariates  
+A: Binary treatment or exposure  
+Y: Binary outcome  
+$Y_{1}, Y_{O}$: Counterfactual outcomes with binary treatment A  
+$P_{0}$: True data-generating distribution  
+$\Psi(P_{0})$:True target parameter  
+$\psi_{0}\,=\,\Psi(P_{0})$: True target parameter value  
+$g_{0}$: Propensity score for the treatment mechanism (A)      
+$g_{0}$: Estimate of $g_{0}$  
+$\epsilon$: Fluctuation parameter  
+$\epsilon_{n}$: Estimate of $\epsilon$
+$H_{n}^{*}$: Clever covariate estimate (inverse probability of treatment weight)      
+$L(O,\bar Q)$: Example of a loss function where it is a function of O and $\bar Q$   
+$(Y \,-\, \bar Q(A, W))^{2}$: Expected squared error loss   
+$\bar Q_{0}$: Conditional mean of outcome given parents; $E_{0}(Y|A,W)$  
+$\bar Q_{n}$: Estimate of $\bar Q_{0}$  
+$\bar Q_{n}^{0}$: Initial estimate of $\bar Q_{0}$    
+$\bar Q_{n}^{1}$: First updated estimate of $\bar Q_{0}$   
+$\bar Q_{n}^{*}$: Targeted estimate of $\bar Q_{n}^{0}$ in TMLE procedure; $\bar Q_{n}^{*}$ may equal $\bar Q_{n}^{1}$  
 
 #Session Info 
 ```{r session-info, results ='markup'}
