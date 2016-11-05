@@ -311,7 +311,7 @@ $$\sigma({\psi_{0}})=\sqrt{\frac{Var(IC_{n})}{n}}.  (3)$$
 **Note**: see appendix two for a short introduction to the theory of the Influence Curve.   
 
 ```{r}
-Q <- as.data.frame(Q)
+Q  <- as.data.frame(Q)
 IC <- h[,1]*(Y-Q$QAW) + Q$Q1W - Q$Q0W - Psi;summary(IC)
 n <- nrow(ObsData)
 varHat.IC <- var(IC)/n; varHat.IC
@@ -359,11 +359,11 @@ $$ (Y \,-\, \bar Q(A, W))^{2}$$
 1. **Step One**: $\bar Q_{n}^{0}(A,W)$ prediction
 
 ```{r}
-#Q0
+#E(Y|A,W) prediction
 library(SuperLearner)
 #Specify SuperLearner libraries
 SL.library <- c("SL.glm","SL.step","SL.glm.interaction")
-#Data frame with X with baseline covariates and exposure
+#Data frame with X with baseline covariates and exposure A
 X <- subset(ObsData, select=c(A, w1, w2, w3, w4))
 n <- nrow(ObsData)
 #Create data frames with A=1 and A=0
@@ -376,11 +376,11 @@ newdata <- rbind(X,X1,X0)
 Qinit <- SuperLearner(Y=ObsData$Y, X=X, newX=newdata, SL.library=SL.library, family="binomial")
 Qinit
 #Predictions
-#Pred prob of survival given A, W
+#Pred prob of mortality (Y) given A, W
 QbarAW <- Qinit$SL.predict[1:n]
-#Pred prob of surv for each subject given A=1 and w
+#Pred prob of dying for each subject given A=1 and w
 Qbar1W <- Qinit$SL.predict[(n+1):(2*n)]
-#Pred prob of surv for each subject given A=0 and w
+#Pred prob of dying for each subject given A=0 and w
 Qbar0W <- Qinit$SL.predict[(2*n+1):(3*n)]
 #Simple substitution estimator Psi(Q0)
 PsiHat.SS <- mean(Qbar1W-Qbar0W);PsiHat.SS
@@ -409,7 +409,7 @@ H0W <- -1/gHat0W
 #Step 4: Substitution estimaiton Q* of the ATE.
 logitUpdate <- glm(ObsData$Y ~ -1 + offset(qlogis(QbarAW))+HAW, family='binomial')
 eps <- logitUpdate$coef;eps
-#Calculating the predicted values for each subject under each txt
+#Calculating the predicted values for each subject under each treatment A=1, A=0
 QbarAW.star <- plogis(qlogis(QbarAW)+eps*HAW)
 Qbar1W.star <- plogis(qlogis(Qbar1W)+eps*H1W)
 Qbar0W.star <- plogis(qlogis(Qbar0W)+eps*H0W)
