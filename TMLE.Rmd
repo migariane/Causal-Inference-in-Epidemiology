@@ -1,7 +1,7 @@
 ---
-title: "Taregeted Maximum Likelihood Estimation for a Binary Outcome: Tutorial and Guided Implementation"
+title: "Targeted Maximum Likelihood Estimation for a Binary Outcome: Tutorial and Guided Implementation"
 author: 'By: Miguel Angel Luque Fernandez'
-date: "November 3rd, 2016"
+date: "November 4th, 2016"
 output:
   html_notebook:
     code_folding: show
@@ -24,7 +24,7 @@ bibliography: references/bibliography.bib
 ---
 
 <!--BEGIN:  Set the global options and load packages-->
-```{r set-global-options, echo = FALSE}
+```{r set-global-options, echo = FALSE, message= FALSE}
 knitr::opts_chunk$set(eval = TRUE, 
                       echo = TRUE, 
                       cache = FALSE,
@@ -39,7 +39,7 @@ knitr::opts_chunk$set(eval = TRUE,
                       fig.height = 7)
 #You need the suggested packages to run this notebook
 #install.packages('tmle', 'SuperLearner', 'DT')
-require('tmle', 'SuperLearner', 'DT')
+library('tmle', 'SuperLearner', 'DT')
 ```
 
 #Introduction
@@ -54,11 +54,13 @@ Causal Inference based on the **Neyma-Rubin Potential Outcomes Framework** [@rub
 4. effect of time-dependent confounding and mediators,
 5. etc.
 
-Classical epidemiologic methods to control for confounding require making the assumption that the effect measure is constant across levels of confounders included in the model.  
+Causal effects are often formulated regarding comparisons of potential outcomes, as formalised by Rubin [@rubin2011]. Let A denote a binary exposure, **W** a vector of potential confounders, and Y a binary outcome. Given A, each individual has a pair of potential outcomes: the outcome when exposed, denoted $Y_{1}$, and the outcome when unexposed, $Y_{0}$. These quantities are referred to as **potential outcomes** since they are hypothetical, given that it is only possible to observe a single realisation of the outcome for an individual; we observe $Y_{1}$ only for those in the exposure group and $Y_{0}$ only for those in the unexposed group [@rubin1974]. A common causal estimand is the **Average Treatment Effect** (ATE), defined as $E[Y_{1}\, – \,Y_{0}]$.  
 
-Alternatively, James Robins in 1986 demonstrated that using standardisation, implemented through the use of the **G-formula**, allows obtaining a unconfounded marginal estimation of the causal average treatment effect (ATE) or risk difference under causal untestable assumptions [@robins1986], [@robins2000].       
+Classical epidemiologic methods use regression adjustment to explain the main effect of a risk factor measure on a disease or outcome. Regression adjustment control for confounding but requires making the assumption that the effect measure is constant across levels of confounders included in the model. However, in non-randomized observational studies, the effect measure is not constant across groups given the different distribution of individual characteristics at baseline.  
 
-#The G-Formula
+James Robins in 1986 demonstrated that using the **G-formula** a generalization of the **standardisation**, allows obtaining a unconfounded marginal estimation of the ATE under causal untestable assumptions, namely conditional mean independence, positivity and consistency or stable unit treatment value assignment (SUTVA) [@robins1986], [@robins2000]:      
+  
+#The G-Formula and ATE estimation
 
 $$\psi(P_{0})\,=\,\sum_{w}\,\left[\sum_{y}\,P(Y=y\mid A=1,W=w)-\,\sum_{y}\,P(Y = y\mid A=0,W=w)\right]P(W=w)$$  
 
@@ -69,13 +71,15 @@ is the conditional probability distribution of Y = y, given A = a, W = w and,
 
 $$P(W = w)\,=\,\sum_{y,a}\,P(W = w, A = a, Y = y)$$ 
 
-* Classical epidemiologic methods require making the assumption that the effect measure is constant across levels of confounders included in the model. However, **Standardisation** allows obtaining an unconfounded summary effect measure without requiring this assumption. The **G-formula** is a *generalisation of standardisation* [@robins1986].    
+The ATE can be estimated **non-parametrically** using the G-formula. However, the **course of dimensionality** in observational studies limits its estimation. Hence, the estimation of the ATE using the G-formula relies mostly on **parametric modelling** and maximum likelihood estimation.   
 
-* The ATE can be estimated **non-parametrically** using the G-formula. However, the course of dimensionality in observational studies limits its estimation.   
+The correct model specification in parametric modelling is crucial to obtain unbiased estimates of the true ATE [@rubin2011]. Alternatively, propensity score methods, introduced by Rosenbaum and Rubin [@rosenbaum1983], are also commonly used for estimation of the ATE. The propensity score is a balancing score that can be used to create statistically equivalent exposure groups to estimate the ATE via matching, weighting, or stratification [@rosenbaum1983]. 
 
-* Hence, the estimation of the ATE using the G-formula relies mostly on **parametric modelling** assumptions and maximum likelihood estimation. The **correct model specification** in parametric modelling is crucial to obtain unbiased estimates of the true ATE [@rubin2011].  
+However, very low or very high propensity scores can lead to very large weights, resulting in unstable ATE estimates with high variance and values outside the constraints of the statistical model [@lunceford2004].  
 
-However, Mark van der Laan and collaborators have developed a double-robust estimation procedure **to reduce bias against misspecification**. The targeted maximum likelihood estimation (TMLE) is a semiparametric, efficient substitution estimator [@van2011].    
+Furthermore, when analyizing observational data with a large number of variables and potentially complex relationships among them, model misspecification during estimation is of particular concern. Hence, the correct model specification in parametric modelling is crucial to obtain unbiased estimates of the true ATE [@van2011]. 
+
+However, Mark van der Laan and Rubin [@van2006] introduced in 2006 a **double-robust** estimation procedure to **reduce bias** against misspecification. The targeted maximum likelihood estimation (**TMLE**) is a semiparametric, efficient substitution estimator [@van2011].      
 
 #TMLE
 
@@ -96,7 +100,7 @@ However, Mark van der Laan and collaborators have developed a double-robust esti
 $$\psi TMLE,n = \Psi(Q_{n}^{*})= {\frac{1}{n}\sum_{i=1}^{n}\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right)}.  (1)$$
 7. The efficient influcence curve (IC) based on Hampel seminal paper [@hampel1974] is applied for statistical inference using TMLE:  
 
-$$IC_{n}(O_{i})\ \ =\ \left(\frac{I\left(A_{i}=1\right)}{g_n\left(1\left|W_{i}\right)\right)}\ -\ \frac{I\left(A_{i}=0\right)}{g_n\left(0\left|W_{i}\right)\right)}\ \right)\left[Y_{i}-\bar{Q}_{n}^{1}\left(A_{i},W_{i}\right)\right]+\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right) - \psi TMLE,n. (2)$$  
+$$IC_{n}(O_{i})=\left(\frac{I\left(A_{i}=1\right)}{g_n\left(1\left|W_{i}\right)\right)}\ -\ \frac{I\left(A_{i}=0\right)}{g_n\left(0\left|W_{i}\right)\right)}\ \right)\left[Y_{i}-\bar{Q}_{n}^{1}\left(A_{i},W_{i}\right)\right]+\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right) - \psi TMLE,n. (2)$$  
 where the variance of the ATE:  
 
 $$\sigma({\psi_{0}})=\sqrt{\frac{Var(IC_{n})}{n}}.  (3)$$  
@@ -169,7 +173,7 @@ set.seed(7777)
 ObsData <- generateData(n=10000)
 True_Psi <- mean(ObsData$Y.1-ObsData$Y.0);
 cat(" True_Psi:", True_Psi)
-Bias_Psi <- lm(data=ObsData, Y~ A)
+Bias_Psi <- lm(data=ObsData, Y~ A + w1 + w2 + w3 + w4)
 cat("\n")
 cat("\n Naive_Biased_Psi:",summary(Bias_Psi)$coef[2, 1])
 Naive_Bias <- ((summary(Bias_Psi)$coef[2, 1])-True_Psi); cat("\n Naives bias:", Naive_Bias)
@@ -224,7 +228,7 @@ QA0<-exp(Y0)/(1+exp(Y0))
 #Inverse logit (probability scale)
 psi <- (exp(Y1)/(1+exp(Y1)) - exp(Y0)/(1+exp(Y0)))
 Psi <- mean(exp(Y1)/(1+exp(Y1)) - exp(Y0)/(1+exp(Y0))); cat("\n Q0:", Psi)
-df <- round(cbind(Logit=(Q),Pr.A1=QA1,Pr.A0=QA0,Psi=psi), digits= 3)
+df <- round(cbind(Logit=(Q),Pr.Y1=QA1,Pr.Y0=QA0,Psi=psi), digits= 3)
 ```
 **Visualizing** the first step:  
 
@@ -237,7 +241,7 @@ Estimation of the probability of the treatment (A) given the set of covariates (
 $$\text{logit}[P(A=1|W)]\,=\,\beta_{0}\,+\,\beta_{1}^{T}W.$$ 
 Then, we estimate the predicted probability of P(A|W) = $\hat{g}(1,W)$ using:  
 
-$$\hat{g}(1,W)\,=\,\text{expit}\,(\hat{\beta_{0}}\,+\,\hat{\beta_{2}^{T}}W).$$ 
+$$\hat{g}(1,W)\,=\,\text{expit}\,(\hat{\beta_{0}}\,+\,\hat{\beta_{1}^{T}}W).$$ 
 
 ```{r}
 g <- glm(A ~ w2 + w3 + w4, family = binomial)
@@ -257,7 +261,7 @@ Where,
 $$H_{0}(A,W)\,=\,\frac{I(A=0)}{\hat{g}(0|W)}\;\text{and},\;H_{1}(A,W)\,=\,\frac{I(A=1)}{\hat{g}(1|W)}$$ are the stabilized inverse probability of treatment (A) weights (IPTW), namelly the **clever covariates** and **I** defines an indicator function (note that $\hat{g}(A|W)$ is estimted from step 2).  
 
 ```{r}
-#Model 5: Clever covariate and fluctuating/substitution paramteres
+#Clever covariate and fluctuating/substitution paramteres
 h <- cbind(gAW=(A/g1W -(1-A)/(1-g1W)), g1W=(1/g1W), g0W=(-1/(1-g1W)))
 epsilon <- coef(glm(Y ~ -1 + h[,1] + offset(Q[,"QAW"]), family = binomial));cat("\n Epsilon:",epsilon)
 df <- round(cbind(Q0,PS=(g1W),H=(h),epsilon), digits= 4)
@@ -478,8 +482,6 @@ The **SL** algorithm provides a system based on V-fold cross-validation [@efron1
 ![](Figures/vfold.png)
 **Figure 4**: 10-fold cross-validation algorithm.  
 **Source**: Sherri Rose in Esembles in Public Health and Healt Policy. May 4, 2016.  
-
-
 The basic implementation of TMLE in the R-package **tmle** uses by default three algorithms:  
 1. SL.glm (main terms logistic regression of A and W),    
 2. SL.step (stepwise forward and backward model selection using AIC criterion,   restricted to second order polynomials) and,  
