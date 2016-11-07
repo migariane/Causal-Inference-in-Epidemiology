@@ -1,7 +1,7 @@
 ---
 title: "Targeted Maximum Likelihood Estimation for a Binary Outcome: Tutorial and Guided Implementation"
 author: 'By: Miguel Angel Luque Fernandez'
-date: "November 6th, 2016"
+date: "November 8th, 2016"
 output:
   html_notebook:
     code_folding: show
@@ -24,7 +24,7 @@ bibliography: references/bibliography.bib
 ---
 
 <!--BEGIN:  Set the global options and load packages-->
-```{r set-global-options, echo = FALSE, message= FALSE}
+```{r set-global-options, echo = FALSE, error=FALSE, message= FALSE}
 knitr::opts_chunk$set(eval = TRUE, 
                       echo = TRUE, 
                       cache = FALSE,
@@ -135,7 +135,7 @@ both this idea that **units do not interfere** with one another, and also the co
 #TMLE flow chart 
 ![](Figures/tmle.png)
 **Figure 2**. TMLE flow chart (Road map)  
-**Source**: Mark van der Laan and Sherri Rose. Targeted learning: causal inference for observational and experimental dataSpringer Series in Statistics, 2011.  
+**Adapted from**: Mark van der Laan and Sherri Rose. Targeted learning: causal inference for observational and experimental dataSpringer Series in Statistics, 2011.  
 
 #Data generation
 
@@ -458,9 +458,9 @@ We have demonstrated:
 2. TMLE **best performance** is obtained when calling more advanced **Super-Learner** algorithms.     
  
 # Appendix One
-Efron in 1982 showed that the empirical **Influence Curve** estimate of standar error is the same as the one obtained using the **infinitesimal jackknife** and the **nonparametric deltha method** [@efron1982].  
+Efron in 1982 showed that the empirical **Influence Curve** estimate of standard error is the same as the one obtained using the **infinitesimal jackknife** and the **nonparametric delta method** [@efron1982].  
 
-1. The Delat Method uses the first order of the Taylor series expansion: 
+1. The Delta Method uses the first order of the Taylor series expansion: 
 $$f(x) \approx f(x)\,-\,f(\mu)\,+\,(x\,-\,\mu)f'(\mu);$$   
 where $f'(\mu)$ is the derivative of the function with respect to X evaluated at the mean of X. Therefore, squaring both terms, the variance is approximately estimate as follwos:
 $$\text{E}[f(x)-f(\mu)]^{2}\approx \text{E}(x\,-\,\mu)^{2}\,\times\,[f'(\mu)]^{2};$$
@@ -479,9 +479,8 @@ With TMLE we can call the R-package **Super-Learner (SL)**. The *SL* uses **cros
 
 The **SL** algorithm provides a system based on V-fold cross-validation [@efron1983] (10-folds) to combine adaptively multiple algorithms into an improved estimator, and returns a function than can be used for prediction in new datasets.  
 
-![](Figures/vfold.png)
+![](Figures/cv.png)
 **Figure 4**: 10-fold cross-validation algorithm.  
-**Source**: Sherri Rose in Esembles in Public Health and Healt Policy. May 4, 2016.  
 The basic implementation of TMLE in the R-package **tmle** uses by default three algorithms:  
 1. SL.glm (main terms logistic regression of A and W),    
 2. SL.step (stepwise forward and backward model selection using AIC criterion,   restricted to second order polynomials) and,  
@@ -493,10 +492,10 @@ where $L(O, \bar Q)$ is:
 $$ (Y \,-\, \bar Q(A, W))^{2}$$
 The **SL** algorithm first split the data into ten blocks and fits each of the selected algoriths on the training set (non-shaded blocks), then predicts the estimated probabilities of the outcome (Y) using the validation set (shaded block) for each algorithm, based on the corresponding training set. Afterwards, the **SL** estimates the the cross-validating risk for each algorithm averaging the risks across validation sets resulting in one estimated cross-validated risk for each algorithm. Finally, the **SL** selects the combination of Z that minimises the cross-validation risk, defined as the minimum mean square error for each of the selected algorithms using Y and Z. A weighted combination of the algorithms (ensemble learning) in Z is then used to predict the outcome (Y) (see Figure 5).  
 
-![](Figures/CV.png)
+![](Figures/SL.png)
 
 **Figure 5**: Flow Diagram for the Super-Learner algorithm.  
-**Source**: Mark van der Laan and Sherri Rose. Targeted learning: causal inference for observational and experimental dataSpringer Series in Statistics, 2011. 
+**Adapted from**: Mark van der Laan and Sherri Rose. Targeted learning: causal inference for observational and experimental dataSpringer Series in Statistics, 2011. 
 
 #Abbreviations
 
