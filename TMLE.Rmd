@@ -1,7 +1,7 @@
 ---
 title: "Targeted Maximum Likelihood Estimation for a Binary Outcome: Tutorial and Guided Implementation"
 author: 'By: Miguel Angel Luque Fernandez'
-date: "March 21st, 2017"
+date: "May 24th, 2017"
 output:
   html_notebook:
     code_folding: show
@@ -22,7 +22,13 @@ font-import: http://fonts.googleapis.com/css?family=Risque
 csl: references/isme.csl
 bibliography: references/bibliography.bib
 ---
-
+<script>
+ $(document).ready(function() {
+  $head = $('#header');
+  $head.prepend('<img src = "Figures/Logo.png" style =\"float: right;width: 150px;\"/>')
+ });
+</script>
+ 
 <!--BEGIN:  Set the global options and load packages-->
 ```{r set-global-options, echo = FALSE, error=FALSE, message= FALSE}
 knitr::opts_chunk$set(eval = TRUE, 
@@ -296,8 +302,7 @@ df <- round(cbind(Q0=(Q0),H=(h),epsilon,psi), digits= 4)
 datatable(head(df, n = nrow(df)), options = list(pageLength = 5, digits = 3))
 ```
 ```{r}
-cat("\n Psi first row:", plogis((0.001189*1.2399)+(2.3678))-(plogis((0.001189*-5.1681)+(1.3413))))
-cat("\n TMLE_Psi:", Psi)
+cat("\n Psi first row:", plogis((0.0012*1.2399) + (2.3678)) - (plogis((0.0012*-5.1681) + (1.3413))))
 ```
 
 ##Step 5: Inference
@@ -339,7 +344,7 @@ cat("\n AIPTW_bias:", abs(True_Psi - AIPTW))
 cat("\n Relative_AIPTW_bias:",abs(True_Psi - AIPTW) / True_Psi*100,"%")
 ```
 
-Compared with AIPTW, TMLE showed similar relative bias.  
+The simple TMLE algorithm shows similar relative bias than AIPTW. However, here below, we can see that TMLE performance, compared with AIPTW, improves when calling the Super-Learner and ensemble learning techniques integrated into the TMLE algorithm.
 
 #TMLE using the Super-Learner 
 
