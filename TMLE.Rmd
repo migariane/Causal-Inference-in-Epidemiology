@@ -1,7 +1,7 @@
 ---
 title: "Targeted Maximum Likelihood Estimation for a Binary Outcome: Tutorial and Guided Implementation"
 author: 'By: Miguel Angel Luque Fernandez'
-date: "May 24th, 2017"
+date: "June 20th, 2017"
 output:
   html_notebook:
     code_folding: show
@@ -117,12 +117,12 @@ $$\sigma({\psi_{0}})=\sqrt{\frac{Var(IC_{n})}{n}}.  (3)$$
 
 ##Direct Acyclic Graph (DAG)
 ![](Figures/DAG.png)
-**Figure 1**. Direct Acyclic Graph  
+**Figure 1**. Direct Acyclic Graph (DAG)  
 **Source**: Miguel Angel Luque-Fernandez  
 
 ##DAG interpretation 
 
-The ATE is interpreted as the population risk difference in one-year mortality for lung cancer patients diagnosed via emergency presentations versus non-emergency presentations. Under causal assumptions, and compared with non-emergency presentations of lung cancer, the risk difference of one-year mortality for emergency presentations increases by approximately **20%**. 
+The ATE is interpreted as the population risk difference in one-year mortality for laryngeal cancer patients treated with chemotherapy versus radiotherapy. Under causal assumptions, and compared with radiotherapy, the risk difference of one-year mortality for patients treated with chemotherapy increases by approximately **20%**. 
 
 #Causal assumptions 
 To estimate the value of the true causal target parameter $\psi(P_{0})$ with a model for the true data generation process $P_{0}$ under the counterfactual framework augmented additional untestable cuasal assumptions have to be considered [@rubin2011], [@van2011]:          
@@ -152,10 +152,10 @@ In R we create a function to generate the data. The function will have as input 
 The simulated data replicationg the DAG in Figure 1:  
 
 1. Y: mortality binary indicator (1 death, 0 alive) 
-2. A: binary treatment for emergency presentation at cancer diagnosis  (1 EP, 0 NonEP)    
+2. A: binary treatment (1 Chemotherapy, 0 Radiotherapy )    
 3. W1: Gender (1 male; 0 female)  
 4. W2: Age at diagnosis (0 <65; 1 >=65)  
-4. W3: Cancer TNM classification (scale from 1 to 4)  
+4. W3: Cancer TNM classification (scale from 1 to 4; 1: early stage no metastasis; 4: advanced stage with metastasis)  
 5. W4: Comorbidities (scale from 1 to 5)  
 
 ```{r warning=FALSE}
@@ -317,7 +317,8 @@ $$\sigma({\psi_{0}})=\sqrt{\frac{Var(IC_{n})}{n}}.  (3)$$
 
 ```{r}
 Q  <- as.data.frame(Q)
-IC <- h[,1]*(Y-plogis(Q$QAW)) + plogis(Q$Q1W - Q$Q0W) - Psi;summary(IC)
+Qstar <- as.data.frame(Qstar)
+IC <- h[,1]*(Y-plogis(Q$QAW)) + plogis(Qstar$Q1W - Qstar$Q0W) - Psi;summary(IC)
 n <- nrow(ObsData)
 varHat.IC <- var(IC)/n; varHat.IC
 
@@ -437,17 +438,18 @@ The basic implementation of TMLE in the R-package **tmle** uses by default three
 
 ```{r}
 library(tmle)
+set.seed(7777)
 w <- subset(ObsData, select=c(w1,w2,w3,w4))
 tmle <- tmle(Y, A, W=w)
 cat("TMLER_Psi:", tmle$estimates[[2]][[1]],";","95%CI(", tmle$estimates[[2]][[3]],")")
 cat("\n TMLE_bias:", abs(True_Psi-tmle$estimates[[2]][[1]]))
 cat("\n Relative_TMLE_bias:",abs(True_Psi-tmle$estimates[[2]][[1]])/True_Psi*100,"%")
 ```
-In addition TMLE bounds by default to (0.025 and 0.975) the propensity score distribution to decrease the impact of near-positivity violations. It is why the bias using the TMLE-R package decreases from 0.7354 to 0.7108
+TMLE implementation in the R-package **tmle** improves the estimation of the inverse-propability of treatment weights. It bounds by default the distribution of the weights for the propensity score to (0.025th and 0.975th percentiles) to decrease the impact of near-positivity violations. Also, note that at each time that we run the super-learner the V-fold cross-validation splits the data randomly. So, we have to set a seed for replicability. It is why the bias using the **tmle** R-package decreases from 0.7354 to 0.6979.
 
 #R-TMLE decreasing bias by calling more advanced machine-learning libraries
 
-In addition to the default algorithms implemented in the R-tmle package, we can even decrease more the bias of our estimation by calling more efficient machine learing algorithms, such as generalized additive models, the Random Forest and, Recursive Partitioning and Regression Trees:    
+In addition to the default algorithms implemented in the R-tmle package, we can even decrease more the bias of our estimation by calling more efficient machine learing algorithms, such as generalized additive models, Random Forest and, Recursive Partitioning and Regression Trees:    
 
 ```{r}
 SL.TMLER.Psi <- tmle(Y=Y, A=A, W=w, family="binomial", 
