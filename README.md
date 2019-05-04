@@ -1,4 +1,4 @@
-# Causal Inference in Epidemiology: a little overview
+# Causal Inference with TMLE in Epidemiology: a little overview
 
 During the last 30 years, **Modern Epidemiology** has been able to identify significant limitations of classic epidemiologic methods when the focus is to explain the main effect of a risk factor on a disease or outcome:   
 
@@ -17,10 +17,12 @@ However, Mark van der Laan and collaborators have developed a double-robust esti
 Evidence shows that **TMLE** provides the less unbiased estimate of the ATE compared with other double robust estimators.  
 
 The R notebook (**TMLE.nb.html**) will guide you step by step through the implementation of the Targeted Maximum Likelihood Estimation (TMLE). 
+
 Please, download and open it in your favourite browser or visit the following link:  
 http://migariane.github.io/TMLE.nb.html   
-Hope you will enjoy it.    
+Hope you will enjoy it. 
+
 Best regards,    
-Miguel Angel Luque Fernandez  
-**:-)**
+Miguel Angel Luque-Fernandez  
+
 
