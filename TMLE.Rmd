@@ -1,7 +1,7 @@
 ---
 title: "Targeted Maximum Likelihood Estimation for a Binary Outcome: Tutorial and Guided Implementation"
-author: 'By: Miguel Angel Luque Fernandez'
-date: "Last update: April 5, 2019"
+author: "Miguel Angel Luque Fernandez, MA, MPH, MSc, Ph.D \n https://maluque.netlify.com/"
+date: "Last update: 5/5/2019 \n https://scholar.harvard.edu/malf/home"
 output:
   html_notebook:
     code_folding: show
@@ -85,9 +85,11 @@ However, very low or very high propensity scores can lead to very large weights,
 
 Furthermore, when analyizing observational data with a large number of variables and potentially complex relationships among them, model misspecification during estimation is of particular concern. Hence, the correct model specification in parametric modelling is crucial to obtain unbiased estimates of the true ATE [@van2011]. 
 
-However, Mark van der Laan and Rubin [@van2006] introduced in 2006 a **double-robust** estimation procedure to **reduce bias** against misspecification. The targeted maximum likelihood estimation (**TMLE**) is a semiparametric, efficient substitution estimator [@van2011].      
+However, Mark van der Laan and Rubin [@van2006] introduced in 2006 a **double-robust** estimation procedure to **reduce bias** against misspecification. The targeted maximum likelihood estimation (**TMLE**) is a semiparametric, efficient substitution estimator [@van2011]. 
 
 # TMLE
+
+Note: for a more formal presentation of the TMLE statistical framework readers would like to read the published tutorial in Statistics in Medicine (https://onlinelibrary.wiley.com/doi/full/10.1002/sim.7628). Readers reading this open source introductory tutorial should gain sufficient understanding of TMLE to be able to apply the method in practice. Extensive classic R-code is provided in easy-to-read boxes throughout the tutorial for replicability. Stata users will find a testing implementation of TMLE and additional material in the appendix and at the following GitHub repository https://github.com/migariane/SIM-TMLE-tutorial 
 
 **TMLE** allows for data-adaptive estimation while obtaining valid statistical inference based on the targeted minimum loss-based estimation and machine learning algorithms to minimise the risk of model misspecification [@van2011]. The main characteristics of **TMLE** are:      
 
@@ -166,17 +168,16 @@ generateData <- function(n){
   w3 <- round(runif(n, min=0, max=4), digits=3)
   w4 <- round(runif(n, min=0, max=5), digits=3)
   A  <- rbinom(n, size=1, prob= plogis(-0.4 + 0.2*w2 + 0.15*w3 + 0.2*w4 + 0.15*w2*w4))
-  Y  <- rbinom(n, size=1, prob= plogis(-1 + A -0.1*w1 + 0.3*w2 + 0.25*w3 + 0.2*w4 + 0.15*w2*w4))
-  
   # counterfactual
   Y.1 <- rbinom(n, size=1, prob= plogis(-1 + 1 -0.1*w1 + 0.3*w2 + 0.25*w3 + 0.2*w4 + 0.15*w2*w4))
   Y.0 <- rbinom(n, size=1, prob= plogis(-1 + 0 -0.1*w1 + 0.3*w2 + 0.25*w3 + 0.2*w4 + 0.15*w2*w4))
-  
+  # Observed outcome
+  Y <- Y.1*A + Y.0*(1 - A)
   # return data.frame
   data.frame(w1, w2, w3, w4, A, Y, Y.1, Y.0)
 }
 set.seed(7777)
-ObsData <- generateData(n=1000)
+ObsData <- generateData(n=10000)
 True_Psi <- mean(ObsData$Y.1-ObsData$Y.0);
 cat(" True_Psi:", True_Psi)
 Bias_Psi <- lm(data=ObsData, Y~ A + w1 + w2 + w3 + w4)
@@ -298,16 +299,16 @@ cat("\n Relative_TMLE.SI_bias:",abs(True_Psi-Psi)/True_Psi*100,"%")
 **Visualizing** the 4th step (H = IPTW or clever covarites):  
 
 ```{r, warning=FALSE}
-df <- round(cbind(Q0=(Q0),H=(h),epsilon,psi), digits= 4)
+df <- round(cbind(Q0=(Q0),H=(h),epsilon,psi), digits= 3)
 datatable(head(df, n = nrow(df)), options = list(pageLength = 5, digits = 3))
 ```
 ```{r}
-cat("\n Psi first row:", plogis((0.0012*1.2399) + (2.3678)) - (plogis((0.0012*-5.1681) + (1.3413))))
+cat("\n Psi first row:", plogis((0.001*1.239) + (2.395)) - (plogis((0.001*-5.168) + (1.343))))
 ```
 
 ## Step 5: Inference
 Recall that the asymptotic distribution of TMLE estimators has been studied
-thoroughly:
+thoroughly [@van2011]:
 
 $$\psi_n - \psi_0 = (P_n - P_0) \cdot D(\bar{Q}_n^*, g_n) + R(\hat{P}^*, P_0),$$
 
@@ -345,15 +346,17 @@ may be obtained using the bootstrap or computed directly via the following
 
 $$\sigma_n^2 = \frac{1}{n} \sum_{i = 1}^{n} D^2(\bar{Q}_n^*, g_n)(O_i)$$
 
-Having now re-examined these facts, let's simply apply it to the estimation of the standard errors for $\psi$. TMLE uses the efficient influence curve (IC) for inference (i.e., to obtain standard errors for $\psi$).   
+Having now re-examined these facts, let's simply apply it to the estimation of the standard errors for $\psi$. Thus, the efficient influence curve (EIC) for the ATE-TMLE estimator is:   
 
 $$IC_{n}(O_{i})\ \ =\ \left(\frac{I\left(A_{i}=1\right)}{g_n\left(1\left|W_{i}\right)\right)}\ -\ \frac{I\left(A_{i}=0\right)}{g_n\left(0\left|W_{i}\right)\right)}\ \right)\left[Y_{i}-\bar{Q}_{n}^{1}\left(A_{i},W_{i}\right)\right]+\bar{Q}_{n}^{1}\left(1,\ W_{i}\right)-\bar{Q}_{n}^{1}\left(0,\ W_{i}\right) - \psi TMLE,n.$$
 
-where the standard deviation for $\psi$ is estimated as follows:  
+Therefore, the standard deviation for $\psi$ is estimated as follows:  
 
 $$\sigma({\psi_{0}})=\sqrt{\frac{Var(IC_{n})}{n}}.$$
 
-**Note**: please see here below the link to a tutorial introducing the use of the functional **Delta Method** which form the basis for the interpretation and understanding of the Influence Curve rooted in Robust Statistics and Empirical Process Theory.   
+**Note**: Please see here below the link to a practical tutorial introducing the computational derivation and use of the **Delta Method** in Epidemiology which lay the foundations for the interpretation and understanding of the functional delta method and the **Influence Curve** rooted in both, Robust Statistics and Empirical Process Theory.
+
+Delta Method in Epidemiology: https://migariane.github.io/DeltaMethodEpi.nb.html
 
 
 ```{r}
@@ -477,7 +480,6 @@ The basic implementation of TMLE in the R-package **tmle** uses by default three
 2. SL.step (stepwise forward and backward model selection using AIC criterion, restricted to second order polynomials) and,  
 3. SL.glm.interaction (a glm variant that includes second order polynomials and two by two interactions of the main terms included in the model). 
 
-
 ```{r}
 library(tmle)
 set.seed(7777)
@@ -487,16 +489,18 @@ cat("TMLER_Psi:", tmle$estimates[[2]][[1]],";","95%CI(", tmle$estimates[[2]][[3]
 cat("\n TMLE_bias:", abs(True_Psi-tmle$estimates[[2]][[1]]))
 cat("\n Relative_TMLE_bias:",abs(True_Psi-tmle$estimates[[2]][[1]])/True_Psi*100,"%")
 ```
-TMLE implementation in the R-package **tmle** improves the estimation of the inverse-propability of treatment weights. It bounds by default the distribution of the weights for the propensity score to (0.025th and 0.975th percentiles) to decrease the impact of near-positivity violations. Also, note that at each time that we run the super-learner the V-fold cross-validation splits the data randomly. So, we have to set a seed for replicability. It is why the bias using the **tmle** R-package decreases from 0.7354 to 0.6979.
 
-# R-TMLE decreasing bias by calling more advanced machine-learning libraries
+TMLE implementation in the R-package **tmle** improves the estimation of the inverse-propability of treatment weights. It bounds by default the distribution of the weights for the propensity score to (0.025th and 0.975th percentiles) to decrease the impact of near-positivity violations. Also, note that at each time that we run the super-learner the V-fold cross-validation splits the data randomly. So, we have to set a seed for replicability. It is why the bias using the **tmle** R-package decreases from 0.007 to 0.005.
 
-In addition to the default algorithms implemented in the R-tmle package, we can even decrease more the bias of our estimation by calling more efficient machine learing algorithms, such as generalized additive models, Random Forest and, Recursive Partitioning and Regression Trees:    
+# R-TMLE reducing bias by calling more advanced machine-learning libraries
 
-```{r}
+In addition to the default algorithms implemented in the R-tmle package, we can even decrease more the bias of our estimation by calling more efficient machine learing algorithms, such as generalized additive models, Random Forest, Recursive Partitioning and Regression Trees (it is highly recomended to include the the highly adaptive Lasso [HAL9001] in your SL library but for computing efficiency we did not include it here):    
+```{r, warning=FALSE}
+# library(hal9001)
+# hal9001::SL.hal9001
 SL.TMLER.Psi <- tmle(Y=Y, A=A, W=w, family="binomial", 
-    Q.SL.library = c("SL.glm", "SL.step", "SL.glm.interaction", "SL.gam", "SL.randomForest", "SL.rpart"),
-    g.SL.library = c("SL.glm", "SL.step", "SL.glm.interaction", "SL.gam", "SL.randomForest", "SL.rpart"))
+    Q.SL.library = c("SL.glm", "SL.step", "SL.glm.interaction", "SL.gam", "SL.ranger"),
+    g.SL.library = c("SL.glm", "SL.step", "SL.glm.interaction", "SL.gam", "SL.ranger"))
 
 cat("SL.TMLER.Psi:", SL.TMLER.Psi$estimates[[2]][[1]],";","95%CI(", SL.TMLER.Psi$estimates[[2]][[3]],")")
 cat("\n SL.TMLER.Psi_bias:", abs(True_Psi-SL.TMLER.Psi$estimates[[2]][[1]]))
@@ -562,7 +566,7 @@ $\bar Q_{n}^{1}$: First updated estimate of $\bar Q_{0}$
 $\bar Q_{n}^{*}$: Targeted estimate of $\bar Q_{n}^{0}$ in TMLE procedure; $\bar Q_{n}^{*}$ may equal $\bar Q_{n}^{1}$  
 
 # Session Info 
-```{r session-info, results ='markup', echo = TRUE}
+```{r session-info, warning=FALSE, results ='markup', echo = TRUE}
 devtools::session_info()
 ```
 
@@ -577,3 +581,4 @@ Luque-Fernandez MA, (2019). Taregeted Maximum Likelihood Estimation for a Binary
 **Twitter** `@WATZILEI`  
 
 # References 
+
